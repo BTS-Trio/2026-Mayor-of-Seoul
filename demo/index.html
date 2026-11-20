@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서울시장 개표 시뮬레이션</title>
+<style>
+:root {font-family:system-ui,sans-serif;color:#15253b;background:#eff3f8}
+body {max-width:920px;margin:48px auto;padding:0 20px}
+h1 {font-size:clamp(2rem,6vw,3.5rem);margin:8px 0 20px;letter-spacing:-.06em}
+strong {color:#15476e} .tag {background:#fbeac5;color:#624407;padding:7px 12px;border-radius:6px;display:inline-block;font-weight:700}
+section {background:#fff;border:1px solid #d4dce6;border-radius:14px;padding:20px;margin-top:16px;overflow:auto}
+button {background:#16466d;color:white;border:none;border-radius:7px;padding:10px 16px;font:inherit;cursor:pointer}
+progress {width:100%;accent-color:#16466d} table {border-collapse:collapse;width:100%;min-width:390px}
+td,th {text-align:left;border-bottom:1px solid #d4dce6;padding:12px 6px} td:nth-child(n+3),th:nth-child(n+3){text-align:right}
+dl {display:flex;flex-wrap:wrap;gap:15px 30px} dd {margin:3px 0 0} dt {color:#45566a;font-size:.9rem} a {color:#15476e}
+</style>
+<main>
+  <p class="tag">교육용 시뮬레이션 · 가상 개표</p>
+  <h1>2026 서울시장 개표 재생</h1>
+  <p>서울 25개 자치구의 공식 개표 단위를 가상 순서로 재생합니다. 마지막 단계는 공식 최종 집계와 일치합니다.</p>
+  <section aria-label="개표 현황">
+    <button id="start">처음부터 재생</button>
+    <p id="status" role="status">재생 대기</p>
+    <strong id="rate">개표 진행률 —</strong>
+    <progress id="bar" aria-label="가상 개표 진행률" max="100" value="0"></progress>
+    <dl>
+      <div><dt>가상 집계 기준시각</dt><dd id="sim">—</dd></div>
+      <div><dt>브라우저 수신시각</dt><dd id="received">—</dd></div>
+      <div><dt>집계 / 전체 투표지</dt><dd id="count">—</dd></div>
+      <div><dt>집계 / 전체 개표 단위</dt><dd id="units">—</dd></div>
+      <div><dt>근거 행 ID</dt><dd id="event">—</dd></div>
+    </dl>
+  </section>
+  <section aria-label="후보별 누적 득표">
+    <table><thead><tr><th scope="col">후보</th><th scope="col">정당</th><th scope="col">누적 득표수</th><th scope="col">득표율</th></tr></thead><tbody id="results"></tbody></table>
+    <p><a href="https://www.data.go.kr/data/15162288/fileData.do">선관위 공식 개표 데이터</a> · <a href="https://www.hankyung.com/article/2026060599297">최종 수치 교차 확인</a></p>
+  </section>
+</main>
+<script>
+const get = id => document.getElementById(id);
+const set = (id, value) => { get(id).textContent = value; };
+const number = new Intl.NumberFormat('ko-KR');
+const time = new Intl.DateTimeFormat('ko-KR', {dateStyle:'short', timeStyle:'medium', timeZone:'Asia/Seoul'});
+let current;
+function render(frame) {
+  set('sim', time.format(new Date(frame.simulated_at)));
+  set('received', time.format(new Date()));
+  set('event', frame.event_id);
+  set('units', number.format(frame.counted_units) + ' / ' + number.format(frame.total_units));
+  set('rate', '개표 진행률 ' + frame.count_progress_pct.toFixed(2) + '%');
+  set('count', number.format(frame.counted_ballots) + ' / ' + number.format(frame.total_ballots));
+  get('bar').value = frame.count_progress_pct;
+  get('results').replaceChildren(...[...frame.candidates].sort((a, b) => b.votes - a.votes).map(candidate => {
+    const row = document.createElement('tr');
+    for (const value of [candidate.name, candidate.party, number.format(candidate.votes),
+      candidate.vote_share_pct === null ? '—' : candidate.vote_share_pct.toFixed(2) + '%']) {
+      row.insertCell().textContent = value;
+    }
+    return row;
+  }));
+}
+function start() {
+  if (current) current.close();
+  if (location.protocol === 'file:') {
+    set('status', 'README의 실행 명령으로 서버를 시작한 뒤 접속하세요.');
+    return;
+  }
+  set('status', '연결 중');
+  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const socket = new WebSocket(protocol + '//' + location.host + '/ws/replay');
+  current = socket;
+  let finished = false;
+  socket.onopen = () => { if (current === socket) set('status', '연결됨 · 시뮬레이션 진행 중'); };
+  socket.onmessage = message => {
+    if (current !== socket) return;
+    const frame = JSON.parse(message.data);
+    render(frame);
+    if (frame.complete) {
+      finished = true;
+      set('status', '시뮬레이션 완료 · 최종 득표수 일치');
+    }
+  };
+  socket.onerror = socket.onclose = () => {
+    if (current === socket && !finished) set('status', '연결 끊김 · 처음부터 재생 버튼으로 다시 연결하세요.');
+  };
+}
+get('start').addEventListener('click', start);
+</script>
+</html>
