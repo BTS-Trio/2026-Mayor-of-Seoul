@@ -135,11 +135,19 @@ function start() {
   const socket = new WebSocket(protocol + '//' + location.host + '/ws/replay');
   current = socket;
   let finished = false;
-  socket.onopen = () => { if (current === socket) set('status', '연결됨 · 시뮬레이션 진행 중'); };
+  socket.onopen = () => { if (current === socket) set('status', '방송사 서버 연결 · 선관위 송신 대기'); };
   socket.onmessage = message => {
     if (current !== socket) return;
     const frame = JSON.parse(message.data);
+    if (frame.event === 'error') {
+      finished = true;
+      lastFrame = undefined;
+      get('build-draft').disabled = true;
+      set('status', frame.message);
+      return;
+    }
     render(frame);
+    set('status', '선관위 역할 서버 → 방송사 서버 → 화면 전송 중');
     if (frame.complete) {
       finished = true;
       set('status', '시뮬레이션 완료 · 최종 득표수 일치');
