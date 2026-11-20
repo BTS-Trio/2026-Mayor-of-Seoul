@@ -13,12 +13,35 @@ button {background:#16466d;color:white;border:none;border-radius:7px;padding:10p
 progress {width:100%;accent-color:#16466d} table {border-collapse:collapse;width:100%;min-width:390px}
 td,th {text-align:left;border-bottom:1px solid #d4dce6;padding:12px 6px} td:nth-child(n+3),th:nth-child(n+3){text-align:right}
 dl {display:flex;flex-wrap:wrap;gap:15px 30px} dd {margin:3px 0 0} dt {color:#45566a;font-size:.9rem} a {color:#15476e}
+body {max-width:1240px;margin:40px auto;padding:0 22px}
+.eyebrow {font-size:.8rem;letter-spacing:.06em;font-weight:750;color:#315978}
+.deck {display:grid;grid-template-columns:minmax(0, 1.15fr) minmax(0, 1fr);gap:20px;align-items:start}
+.deck section {margin-top:0;margin-bottom:16px}
+h2 {margin:.15em 0 .55em;font-size:1.35rem}
+h3 {margin:.15em 0 .55em;font-size:1.06rem}
+.muted {color:#45566a;font-size:.9rem}
+.editor {border-top:4px solid #16466d}
+.actions {display:flex;gap:9px 14px;align-items:center;flex-wrap:wrap}
+.toggle {display:flex;align-items:center;gap:5px}
+button:disabled {background:#e2e8f0;color:#4b5f75;cursor:default}
+button.secondary:not(:disabled) {background:white;border:1px solid #9cabbc;color:#15253b}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible {outline:3px solid #0866ac;outline-offset:3px}
+.draft {background:#eff4f9;border-radius:8px;padding:14px;margin:14px 0}
+.check {padding:9px 12px;background:#edf2f6;border-radius:6px;margin:.6em 0 1em}
+.check[data-outcome="pass"] {color:#155932;background:#e4f4e8}
+.check[data-outcome="fail"] {color:#8b281d;background:#fcece7}
+textarea {display:block;width:100%;box-sizing:border-box;margin:.4em 0 .8em;padding:8px;border:1px solid #9cabbc;border-radius:6px;font:inherit}
+@media(max-width:880px) {.deck {grid-template-columns:1fr;gap:0}}
+@media(max-width:480px) {body {margin:22px auto;padding:0 12px} section {padding:14px} table {min-width:340px}}
 </style>
 <main>
   <p class="tag">교육용 시뮬레이션 · 가상 개표</p>
-  <h1>2026 서울시장 개표 재생</h1>
+  <h1>2026 서울시장 개표 데스크</h1>
   <p>서울 25개 자치구의 공식 개표 단위를 가상 순서로 재생합니다. 마지막 단계는 공식 최종 집계와 일치합니다.</p>
+  <div class="deck">
+    <div>
   <section aria-label="개표 현황">
+    <h2>개표 현황</h2>
     <button id="start">처음부터 재생</button>
     <p id="status" role="status">재생 대기</p>
     <strong id="rate">개표 진행률 —</strong>
@@ -32,9 +55,36 @@ dl {display:flex;flex-wrap:wrap;gap:15px 30px} dd {margin:3px 0 0} dt {color:#45
     </dl>
   </section>
   <section aria-label="후보별 누적 득표">
+    <h2>후보별 누적 득표</h2>
     <table><thead><tr><th scope="col">후보</th><th scope="col">정당</th><th scope="col">누적 득표수</th><th scope="col">득표율</th></tr></thead><tbody id="results"></tbody></table>
     <p><a href="https://www.data.go.kr/data/15162288/fileData.do">선관위 공식 개표 데이터</a> · <a href="https://www.hankyung.com/article/2026060599297">최종 수치 교차 확인</a></p>
   </section>
+    </div>
+    <section class="editor" aria-labelledby="editor-title">
+      <p class="eyebrow">편집 데스크 · 동작 시연</p>
+      <h2 id="editor-title">기사 검토</h2>
+      <p class="muted">현재 개표 화면으로 예시 기사를 만들어 검수합니다. 결정은 이 탭에만 표시됩니다.</p>
+      <div class="actions">
+        <button id="build-draft" type="button" disabled>예시 기사 만들기</button>
+        <label class="toggle"><input id="inject-error" type="checkbox"> 득표수 오류 넣기</label>
+      </div>
+      <article class="draft">
+        <h3 id="draft-title">기사 초안 대기</h3>
+        <p id="draft-body">개표 재생을 시작하고 표가 집계되면 예시 기사를 만들 수 있습니다.</p>
+        <p id="draft-source" class="muted">근거 행 ID —</p>
+        <a href="https://www.data.go.kr/data/15162288/fileData.do">중앙선거관리위원회 개표 데이터</a>
+      </article>
+      <h3>검증 결과</h3>
+      <p id="review-check" role="status" class="check">검증 대기</p>
+      <label for="review-note">반려 사유</label>
+      <textarea id="review-note" rows="2" placeholder="예: 기사 속 득표수를 공식 집계와 맞춰 주세요." disabled></textarea>
+      <div class="actions">
+        <button id="approve" type="button" disabled>승인</button>
+        <button id="reject" type="button" class="secondary" disabled>반려</button>
+      </div>
+      <p id="review-state" role="status" class="muted">검토 대기</p>
+    </section>
+  </div>
 </main>
 <script>
 const get = id => document.getElementById(id);
@@ -43,6 +93,8 @@ const number = new Intl.NumberFormat('ko-KR');
 const time = new Intl.DateTimeFormat('ko-KR', {dateStyle:'short', timeStyle:'medium', timeZone:'Asia/Seoul'});
 let current;
 function render(frame) {
+  lastFrame = frame;
+  get('build-draft').disabled = !frame.counted_ballots;
   set('sim', time.format(new Date(frame.simulated_at)));
   set('received', time.format(new Date()));
   set('event', frame.event_id);
@@ -85,5 +137,49 @@ function start() {
   };
 }
 get('start').addEventListener('click', start);
+let lastFrame;
+let draft;
+
+function makeDraft() {
+  if (!lastFrame || !lastFrame.counted_ballots) return;
+  const frame = lastFrame;
+  const leader = frame.candidates.reduce((first, candidate) => candidate.votes > first.votes ? candidate : first);
+  const votes = leader.votes + (get('inject-error').checked ? 100 : 0);
+  draft = {
+    status: 'pending',
+    valid: votes === leader.votes,
+    id: frame.event_id
+  };
+  set('draft-title', '서울시장 모의 개표 ' + frame.count_progress_pct.toFixed(2) + '%');
+  set('draft-body', time.format(new Date(frame.simulated_at)) + ' 가상 집계 기준, ' +
+    leader.name + ' 후보의 누적 득표수는 ' + number.format(votes) + '표입니다.');
+  set('draft-source', '집계 근거 ' + frame.event_id + ' · 후보 근거 ' + leader.row_id);
+  set('review-check', draft.valid ? '통과 · 예시 기사의 득표수가 집계 근거와 일치합니다.' :
+    '불일치 · 초안 ' + number.format(votes) + '표 / 집계 ' + number.format(leader.votes) + '표. 승인이 잠겼습니다.');
+  get('review-check').dataset.outcome = draft.valid ? 'pass' : 'fail';
+  get('review-note').value = '';
+  get('review-note').disabled = false;
+  get('approve').disabled = !draft.valid;
+  get('reject').disabled = false;
+  set('review-state', '검토 대기 · ' + draft.id);
+}
+
+function decide(action) {
+  if (!draft || draft.status !== 'pending' || (action === '승인' && !draft.valid)) return;
+  const note = get('review-note').value.trim();
+  if (action === '반려' && !note) {
+    set('review-state', '반려 사유를 입력해 주세요.');
+    get('review-note').focus();
+    return;
+  }
+  draft.status = action;
+  get('approve').disabled = true;
+  get('reject').disabled = true;
+  get('review-note').disabled = true;
+  set('review-state', action + ' 완료 · ' + draft.id + (action === '반려' ? ' · 사유 ' + note : ''));
+}
+get('build-draft').addEventListener('click', makeDraft);
+get('approve').addEventListener('click', () => decide('승인'));
+get('reject').addEventListener('click', () => decide('반려'));
 </script>
 </html>
