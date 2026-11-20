@@ -35,9 +35,12 @@ textarea {display:block;width:100%;box-sizing:border-box;margin:.4em 0 .8em;padd
 @media(max-width:480px) {body {margin:22px auto;padding:0 12px} section {padding:14px} table {min-width:340px}}
 .topline {display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
 .topline p:last-child {margin-bottom:0}
-.mascot {width:clamp(70px,12vw,145px);margin:0;flex:none;text-align:center}
+.mascot {width:clamp(140px,24vw,290px);margin:0;flex:none;text-align:center}
+.mascot-art {position:relative;isolation:isolate}
 .mascot img {display:block;width:100%;height:auto}
-.mascot figcaption {font-size:.72rem;color:#45566a}
+.mascot-sash {position:absolute;top:69%;left:50%;width:46%;height:13%;display:grid;place-items:center;box-sizing:border-box;transform:translate(-50%,-50%) rotate(-26deg);border:1px solid #b7c5d4;border-radius:4px;background:#fff;color:#15253b;font-size:clamp(.9rem,2.5vw,1.85rem);font-weight:900;letter-spacing:.06em;box-shadow:0 2px 5px #102c4930;line-height:1;white-space:nowrap}
+.mascot figcaption {font-size:.84rem;font-weight:800;color:#263c53}
+h1,h2,h3,#rate,#map-summary,.district-tile {font-weight:850}
 .election-map {margin-top:0}
 .map-summary {font-weight:700}
 .map-legend {display:flex;flex-wrap:wrap;gap:6px 13px;list-style:none;padding:0;font-size:.8rem}
@@ -52,7 +55,7 @@ textarea {display:block;width:100%;box-sizing:border-box;margin:.4em 0 .8em;padd
 .dots {display:grid;grid-template-columns:repeat(5, 10px);gap:4px;margin:9px 0}
 .dots span {width:10px;height:10px;border-radius:50%}
 .history-card progress {margin-bottom:.2rem}
-@media(max-width:480px) {.topline {gap:7px}.mascot{width:72px}}
+@media(max-width:480px) {.topline {gap:7px}.mascot{width:min(36vw,144px)}.topline h1{line-height:1.08}}
 
 </style>
 <main>
@@ -60,7 +63,7 @@ textarea {display:block;width:100%;box-sizing:border-box;margin:.4em 0 .8em;padd
   <p class="tag">교육용 시뮬레이션 · 가상 개표</p>
   <h1>2026 서울시장 개표 데스크</h1>
   <p>서울 25개 자치구의 공식 개표 단위를 가상 순서로 재생합니다. 마지막 단계는 공식 최종 집계와 일치합니다.</p>
-  </div><figure class="mascot"><img src="/embic.webp" alt="MBC 캐릭터 엠빅"><figcaption>MBC 캐릭터 엠빅</figcaption></figure></header>
+  </div><figure class="mascot"><div class="mascot-art"><img src="/embic.webp" alt="MBC 캐릭터 엠빅"><span class="mascot-sash">선거</span></div><figcaption>MBC 캐릭터 엠빅</figcaption></figure></header>
   <div class="deck">
     <div>
   <section aria-label="개표 현황">
