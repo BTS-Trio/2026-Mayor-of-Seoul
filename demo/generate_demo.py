@@ -163,10 +163,9 @@ def main():
         'let current;',
         'const offlineFrames = ' + json.dumps(rows, ensure_ascii=False) + ';\nlet current;'
     )
-    mascot = base64.b64encode(DATA.parent.joinpath("embic.webp").read_bytes()).decode("ascii")
-    preview = preview.replace('src="/embic.webp"', f'src="data:image/webp;base64,{mascot}"')
-    background = base64.b64encode(DATA.parent.joinpath("election-background.jpg").read_bytes()).decode("ascii")
-    preview = preview.replace('url("/election-background.jpg")', f'url("data:image/jpeg;base64,{background}")')
+    for filename in ("election-background.jpg", "embic-election.jpg"):
+        image = base64.b64encode(DATA.parent.joinpath(filename).read_bytes()).decode("ascii")
+        preview = preview.replace(f'src="/{filename}"', f'src="data:image/jpeg;base64,{image}"')
     DATA.parent.joinpath("offline-preview.html").write_text(preview, encoding="utf-8")
     print(f"{len(rows)} snapshots, {sum(len(row['candidates']) for row in rows)} candidate rows")
 
