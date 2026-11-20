@@ -4,7 +4,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>서울시장 개표 시뮬레이션</title>
 <style>
-:root {font-family:system-ui,sans-serif;color:#15253b;background:#eff3f8}
+:root {font-family:system-ui,sans-serif;color:#15253b;background:#b9d9f5}
+:root::before {
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  background:#b9d9f5 url("/election-background.jpg") center / cover no-repeat;
+}
 body {max-width:920px;margin:48px auto;padding:0 20px}
 h1 {font-size:clamp(2rem,6vw,3.5rem);margin:8px 0 20px;letter-spacing:-.06em}
 strong {color:#15476e} .tag {background:#fbeac5;color:#624407;padding:7px 12px;border-radius:6px;display:inline-block;font-weight:700}
@@ -33,12 +40,40 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible 
 textarea {display:block;width:100%;box-sizing:border-box;margin:.4em 0 .8em;padding:8px;border:1px solid #9cabbc;border-radius:6px;font:inherit}
 @media(max-width:880px) {.deck {grid-template-columns:1fr;gap:0}}
 @media(max-width:480px) {body {margin:22px auto;padding:0 12px} section {padding:14px} table {min-width:340px}}
-.topline {display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
-.topline p:last-child {margin-bottom:0}
-.mascot {width:clamp(140px,24vw,290px);margin:0;flex:none;text-align:center}
+.topline {
+  display:grid;
+  grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(140px,24%);
+  grid-template-areas:"title copy mascot";
+  align-items:center;
+  gap:clamp(12px,2.4vw,32px);
+  margin-bottom:18px;
+  padding:clamp(14px,2.5vw,30px);
+  border:1px solid #ffffffa6;
+  border-radius:18px;
+  background:linear-gradient(105deg,#f3f9ffe8,#e7f4ffc2 64%,#d7eeffad);
+}
+.topline h1 {grid-area:title;margin:0;line-height:1.1;word-break:keep-all}
+.topline-copy {grid-area:copy;line-height:1.55;word-break:keep-all}
+.topline-copy p {margin:0}
+.topline-copy .tag {margin-bottom:.55em}
+.mascot {grid-area:mascot;width:100%;max-width:290px;margin:0;justify-self:center;text-align:center}
 .mascot-art {position:relative;isolation:isolate}
 .mascot img {display:block;width:100%;height:auto}
-.mascot-sash {position:absolute;top:69%;left:50%;width:46%;height:13%;display:grid;place-items:center;box-sizing:border-box;transform:translate(-50%,-50%) rotate(-26deg);border:1px solid #b7c5d4;border-radius:4px;background:#fff;color:#15253b;font-size:clamp(.9rem,2.5vw,1.85rem);font-weight:900;letter-spacing:.06em;box-shadow:0 2px 5px #102c4930;line-height:1;white-space:nowrap}
+.mascot-sash {
+  position:absolute;
+  top:68%;left:51%;
+  width:45%;height:15%;
+  display:grid;place-items:center;
+  transform:translate(-50%,-50%) rotate(-28deg);
+  border-radius:18% 12% 17% 23% / 42% 33% 39% 47%;
+  background:linear-gradient(95deg,#bcd6e4,#fff 28% 75%,#dcebf3);
+  box-shadow:0 2px 4px #102c4959;
+  color:#15253b;
+  font-size:clamp(.8rem,2.05vw,1.65rem);
+  font-weight:900;
+  line-height:1;
+  white-space:nowrap;
+}
 .mascot figcaption {font-size:.84rem;font-weight:800;color:#263c53}
 h1,h2,h3,#rate,#map-summary,.district-tile {font-weight:850}
 .election-map {margin-top:0}
@@ -55,15 +90,31 @@ h1,h2,h3,#rate,#map-summary,.district-tile {font-weight:850}
 .dots {display:grid;grid-template-columns:repeat(5, 10px);gap:4px;margin:9px 0}
 .dots span {width:10px;height:10px;border-radius:50%}
 .history-card progress {margin-bottom:.2rem}
-@media(max-width:480px) {.topline {gap:7px}.mascot{width:min(36vw,144px)}.topline h1{line-height:1.08}}
+@media(max-width:620px) {
+  .topline {
+    grid-template-columns:minmax(0,1fr) minmax(90px,35%);
+    grid-template-areas:"title title" "copy mascot";
+  }
+  .topline-copy {font-size:.88rem}
+  .mascot figcaption {font-size:.72rem}
+}
 
 </style>
 <main>
-  <header class="topline"><div>
-  <p class="tag">교육용 시뮬레이션 · 가상 개표</p>
-  <h1>2026 서울시장 개표 데스크</h1>
-  <p>서울 25개 자치구의 공식 개표 단위를 가상 순서로 재생합니다. 마지막 단계는 공식 최종 집계와 일치합니다.</p>
-  </div><figure class="mascot"><div class="mascot-art"><img src="/embic.webp" alt="MBC 캐릭터 엠빅"><span class="mascot-sash">선거</span></div><figcaption>MBC 캐릭터 엠빅</figcaption></figure></header>
+  <header class="topline">
+    <h1>2026 서울시장 개표 데스크</h1>
+    <div class="topline-copy">
+      <p class="tag">교육용 시뮬레이션 · 가상 개표</p>
+      <p>서울 25개 자치구의 공식 개표 단위를 가상 순서로 재생합니다. 마지막 단계는 공식 최종 집계와 일치합니다.</p>
+    </div>
+    <figure class="mascot">
+      <div class="mascot-art" role="img" aria-label="흰 선거 띠를 두른 MBC 캐릭터 엠빅">
+        <img src="/embic.webp" alt="">
+        <span class="mascot-sash" aria-hidden="true">선거</span>
+      </div>
+      <figcaption>MBC 캐릭터 엠빅</figcaption>
+    </figure>
+  </header>
   <div class="deck">
     <div>
   <section aria-label="개표 현황">

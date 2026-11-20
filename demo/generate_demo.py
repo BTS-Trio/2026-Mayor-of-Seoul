@@ -140,27 +140,33 @@ def main():
             writer.writerow({"district": district, **{field: sum(u[field] for u in district_units)
                                                        for field in fields[1:]}})
     template = DATA.parent.joinpath("index.html").read_text(encoding="utf-8")
-    preview = template.replace(
+    start = template.index("function start() {")
+    end = template.index("get('start').addEventListener", start)
+    replay = """function start() {
+  clearInterval(current);
+  let index = 0;
+  render(offlineFrames[index]);
+  set('status', '브라우저 내장 개표 시뮬레이션 재생 중');
+  current = setInterval(() => {
+    const frame = offlineFrames[++index];
+    render(frame);
+    if (frame.complete) {
+      clearInterval(current);
+      current = undefined;
+      set('status', '시뮬레이션 완료 · 공식 최종 득표와 일치');
+    }
+  }, 2000);
+}
+"""
+    preview = template[:start] + replay + template[end:]
+    preview = preview.replace(
         'let current;',
         'const offlineFrames = ' + json.dumps(rows, ensure_ascii=False) + ';\nlet current;'
-    ).replace(
-        "    set('status', 'README의 실행 명령으로 서버를 시작한 뒤 접속하세요.');",
-        """    clearInterval(current);
-    let index = 0;
-    render(offlineFrames[index]);
-    set('status', '오프라인 재생 · 시뮬레이션 진행 중');
-    current = setInterval(() => {
-      const frame = offlineFrames[++index];
-      render(frame);
-      if (frame.complete) {
-        clearInterval(current);
-        current = undefined;
-        set('status', '시뮬레이션 완료 · 공식 최종 득표수 일치');
-      }
-    }, 2000);"""
-    ).replace('  if (current) current.close();', "  if (current && location.protocol !== 'file:') current.close();")
+    )
     mascot = base64.b64encode(DATA.parent.joinpath("embic.webp").read_bytes()).decode("ascii")
     preview = preview.replace('src="/embic.webp"', f'src="data:image/webp;base64,{mascot}"')
+    background = base64.b64encode(DATA.parent.joinpath("election-background.jpg").read_bytes()).decode("ascii")
+    preview = preview.replace('url("/election-background.jpg")', f'url("data:image/jpeg;base64,{background}")')
     DATA.parent.joinpath("offline-preview.html").write_text(preview, encoding="utf-8")
     print(f"{len(rows)} snapshots, {sum(len(row['candidates']) for row in rows)} candidate rows")
 

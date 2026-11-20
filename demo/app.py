@@ -28,6 +28,11 @@ def mascot():
     return FileResponse(ROOT / "embic.webp", media_type="image/webp")
 
 
+@app.get("/election-background.jpg")
+def election_background():
+    return FileResponse(ROOT / "election-background.jpg", media_type="image/jpeg")
+
+
 @app.get("/health")
 def health():
     return {"role": "broadcast", "mode": "simulation"}
