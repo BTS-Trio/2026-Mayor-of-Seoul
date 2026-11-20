@@ -50,7 +50,17 @@ textarea {display:block;width:100%;box-sizing:border-box;margin:.4em 0 .8em;padd
 .topline-copy {line-height:1.55;word-break:keep-all}
 .topline-copy p {margin:0}
 .topline-copy .tag {margin-bottom:.55em}
-.election-banner {grid-area:banner;display:block;max-width:100%;height:auto;justify-self:center;border-radius:10px}
+.election-banner {
+  grid-area:banner;
+  display:block;
+  max-width:100%;
+  height:auto;
+  justify-self:center;
+  mask-image:
+    linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),
+    linear-gradient(to bottom,transparent,#000 9%,#000 91%,transparent);
+  mask-composite:intersect;
+}
 .mascot {grid-area:mascot;width:100%;max-width:290px;margin:0;justify-self:center;text-align:center}
 .mascot img {display:block;width:100%;height:auto;border-radius:10px}
 .mascot figcaption {margin-top:.5em;font-size:.84rem;font-weight:800;color:#263c53}
