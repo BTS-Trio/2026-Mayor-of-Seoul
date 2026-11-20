@@ -23,6 +23,11 @@ def dashboard():
     return FileResponse(ROOT / "index.html")
 
 
+@app.get("/embic.webp")
+def mascot():
+    return FileResponse(ROOT / "embic.webp", media_type="image/webp")
+
+
 @app.get("/health")
 def health():
     return {"role": "broadcast", "mode": "simulation"}

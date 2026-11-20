@@ -1,7 +1,9 @@
 """Build reproducible cumulative replay snapshots from reported final totals."""
+import base64
 import csv
 import json
 import random
+from collections import Counter
 from itertools import groupby
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -59,13 +61,20 @@ def generate():
     for i, unit in enumerate(ordered):
         batches[batch_number(i, len(ordered))].append(unit)
     votes_by_candidate = {c["candidate_id"]: 0 for c in candidates}
+    candidate_ids = list(votes_by_candidate)
+    units_by_district = Counter(unit["district"] for unit in units)
+    districts = {name: {"counted_units": 0, "total_units": total, "votes": [0] * len(candidate_ids)}
+                 for name, total in units_by_district.items()}
     invalid_count = 0
     counted_units = 0
     for step, batch in enumerate(batches):
         for unit in batch:
             invalid_count += unit["invalid"]
-            for candidate_id in votes_by_candidate:
+            district = districts[unit["district"]]
+            district["counted_units"] += 1
+            for i, candidate_id in enumerate(candidate_ids):
                 votes_by_candidate[candidate_id] += unit[candidate_id]
+                district["votes"][i] += unit[candidate_id]
         counted_units += len(batch)
         valid_count = sum(votes_by_candidate.values())
         counted = valid_count + invalid_count
@@ -85,6 +94,8 @@ def generate():
             "final_turnout_pct": round(meta["total_ballots"] / meta["registered_voters"] * 100, 2),
             "fact_source_id": "SRC-NEC-01", "verified_source_ids": meta["verified_source_ids"],
             "schema_source_id": meta["official_dataset_id"], "complete": step == STEPS,
+            "districts": {name: {**district, "votes": district["votes"][:]}
+                          for name, district in districts.items()},
             "candidates": [
                 {"candidate_id": c["candidate_id"], "name": c["candidate"], "party": c["party"],
                  "row_id": f"{row_id}-{i + 1:02}", "votes": votes,
@@ -148,6 +159,8 @@ def main():
       }
     }, 2000);"""
     ).replace('  if (current) current.close();', "  if (current && location.protocol !== 'file:') current.close();")
+    mascot = base64.b64encode(DATA.parent.joinpath("embic.webp").read_bytes()).decode("ascii")
+    preview = preview.replace('src="/embic.webp"', f'src="data:image/webp;base64,{mascot}"')
     DATA.parent.joinpath("offline-preview.html").write_text(preview, encoding="utf-8")
     print(f"{len(rows)} snapshots, {sum(len(row['candidates']) for row in rows)} candidate rows")
 

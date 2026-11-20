@@ -5,6 +5,21 @@ import unittest
 from generate_demo import DATA, generate
 
 class DemoTest(unittest.TestCase):
+    def test_district_snapshots_match_city_and_final_csv(self):
+        snapshots = list(generate())
+        for snapshot in snapshots:
+            districts = snapshot["districts"]
+            self.assertEqual(len(districts), 25)
+            self.assertEqual(sum(d["counted_units"] for d in districts.values()), snapshot["counted_units"])
+            for index, candidate in enumerate(snapshot["candidates"]):
+                self.assertEqual(sum(d["votes"][index] for d in districts.values()), candidate["votes"])
+        with (DATA / "seoul_final_by_district.csv").open(encoding="utf-8-sig", newline="") as file:
+            final = snapshots[-1]
+            for row in csv.DictReader(file):
+                actual = final["districts"][row["district"]]
+                self.assertEqual(actual["counted_units"], actual["total_units"])
+                self.assertEqual(actual["votes"], [int(row[c["candidate_id"]]) for c in final["candidates"]])
+
     def test_packaged_data_matches_generator(self):
         lines = (DATA / "demo_snapshots.jsonl").read_text(encoding="utf-8").splitlines()
         snapshots = [json.loads(line) for line in lines]

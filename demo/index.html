@@ -33,11 +33,34 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible 
 textarea {display:block;width:100%;box-sizing:border-box;margin:.4em 0 .8em;padding:8px;border:1px solid #9cabbc;border-radius:6px;font:inherit}
 @media(max-width:880px) {.deck {grid-template-columns:1fr;gap:0}}
 @media(max-width:480px) {body {margin:22px auto;padding:0 12px} section {padding:14px} table {min-width:340px}}
+.topline {display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+.topline p:last-child {margin-bottom:0}
+.mascot {width:clamp(70px,12vw,145px);margin:0;flex:none;text-align:center}
+.mascot img {display:block;width:100%;height:auto}
+.mascot figcaption {font-size:.72rem;color:#45566a}
+.election-map {margin-top:0}
+.map-summary {font-weight:700}
+.map-legend {display:flex;flex-wrap:wrap;gap:6px 13px;list-style:none;padding:0;font-size:.8rem}
+.swatch {display:inline-block;width:.65rem;height:.65rem;border-radius:50%;margin-right:.25rem}
+.district-grid {position:relative;aspect-ratio:6.9/5;max-width:520px;margin:6px auto 14px}
+.district-tile {position:absolute;left:var(--x);top:var(--y);width:15.2%;height:22%;padding:0;color:#fff;background:#546173;clip-path:polygon(50% 0,98% 25%,98% 75%,50% 100%,2% 75%,2% 25%);font-size:clamp(.65rem,2.5vw,.94rem)}
+.district-tile[aria-pressed=true],.district-tile:focus-visible {filter:brightness(.75);text-decoration:underline;text-underline-offset:3px}
+.district-info {padding:10px 13px;background:#f0f4f8;border-radius:8px;font-size:.9rem}
+.history-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,215px),1fr));gap:11px}
+.history-card {border:1px solid #d4dce6;border-radius:8px;padding:13px}
+.history-card p {margin:.4em 0;font-size:.87rem}
+.dots {display:grid;grid-template-columns:repeat(5, 10px);gap:4px;margin:9px 0}
+.dots span {width:10px;height:10px;border-radius:50%}
+.history-card progress {margin-bottom:.2rem}
+@media(max-width:480px) {.topline {gap:7px}.mascot{width:72px}}
+
 </style>
 <main>
+  <header class="topline"><div>
   <p class="tag">교육용 시뮬레이션 · 가상 개표</p>
   <h1>2026 서울시장 개표 데스크</h1>
   <p>서울 25개 자치구의 공식 개표 단위를 가상 순서로 재생합니다. 마지막 단계는 공식 최종 집계와 일치합니다.</p>
+  </div><figure class="mascot"><img src="/embic.webp" alt="MBC 캐릭터 엠빅"><figcaption>MBC 캐릭터 엠빅</figcaption></figure></header>
   <div class="deck">
     <div>
   <section aria-label="개표 현황">
@@ -54,6 +77,16 @@ textarea {display:block;width:100%;box-sizing:border-box;margin:.4em 0 .8em;padd
       <div><dt>근거 행 ID</dt><dd id="event">—</dd></div>
     </dl>
   </section>
+  <section class="election-map" aria-labelledby="district-title">
+    <p class="eyebrow">서울 25개 자치구</p>
+    <h2 id="district-title">자치구별 개표 선두</h2>
+    <p class="muted">타일을 누르면 해당 구의 누적 득표를 볼 수 있습니다. 위치는 알아보기 쉽게 단순화했습니다.</p>
+    <p id="map-summary" class="map-summary" aria-live="polite"></p>
+    <ul id="map-legend" class="map-legend" aria-label="후보별 색상"></ul>
+    <div id="district-grid" class="district-grid" role="group" aria-label="서울 자치구 타일 지도"></div>
+    <div id="district-info" class="district-info" aria-live="polite"></div>
+  </section>
+
   <section aria-label="후보별 누적 득표">
     <h2>후보별 누적 득표</h2>
     <table><thead><tr><th scope="col">후보</th><th scope="col">정당</th><th scope="col">누적 득표수</th><th scope="col">득표율</th></tr></thead><tbody id="results"></tbody></table>
@@ -85,6 +118,13 @@ textarea {display:block;width:100%;box-sizing:border-box;margin:.4em 0 .8em;padd
       <p id="review-state" role="status" class="muted">검토 대기</p>
     </section>
   </div>
+  <section aria-labelledby="history-title">
+    <p class="eyebrow">2010–2026</p>
+    <h2 id="history-title">역대 서울시장 선거 결과</h2>
+    <p class="muted">당선자와 주요 경쟁 후보의 서울 전체 득표율, 25개 구 선두 분포를 비교합니다. 기준은 확정 결과입니다.</p>
+    <div id="history-grid" class="history-grid"></div>
+    <p class="muted">출처 <a href="https://info.nec.go.kr/">중앙선거관리위원회 선거통계시스템</a> · 2026년 항목은 이 프로젝트의 공식 개표 원본 집계</p>
+  </section>
 </main>
 <script>
 const get = id => document.getElementById(id);
@@ -94,6 +134,7 @@ const time = new Intl.DateTimeFormat('ko-KR', {dateStyle:'short', timeStyle:'med
 let current;
 function render(frame) {
   lastFrame = frame;
+  renderDistricts(frame);
   get('build-draft').disabled = !frame.counted_ballots;
   set('sim', time.format(new Date(frame.simulated_at)));
   set('received', time.format(new Date()));
@@ -189,5 +230,107 @@ function decide(action) {
 get('build-draft').addEventListener('click', makeDraft);
 get('approve').addEventListener('click', () => decide('승인'));
 get('reject').addEventListener('click', () => decide('반려'));
+const districtRows = [
+  [2.5, ['강북', '도봉', '노원']],
+  [2, ['은평', '종로', '성북', '중랑']],
+  [1.5, ['마포', '서대문', '중', '동대문']],
+  [0, ['강서', '양천', '영등포', '용산', '성동', '광진', '강동']],
+  [1.5, ['구로', '동작', '서초', '강남', '송파']],
+  [2, ['금천', '관악']]
+];
+const colors = ['#0366a3', '#ad3d31', '#725395', '#886415', '#3a7460'];
+const tiles = new Map();
+let selectedDistrict = '중구';
+
+function candidateRank(frame, district) {
+  if (!frame || !district) return [];
+  return frame.candidates.map((candidate, index) => ({
+    ...candidate, votes: district.votes[index], color: colors[index]
+  })).sort((a, b) => b.votes - a.votes);
+}
+
+function renderDistricts(frame) {
+  const districts = frame?.districts || {};
+  const leaders = new Map();
+  let unresolved = 0;
+  for (const [name, tile] of tiles) {
+    const ranked = candidateRank(frame, districts[name]);
+    const winner = ranked[0]?.votes > ranked[1]?.votes ? ranked[0] : null;
+    tile.style.backgroundColor = winner?.color ?? '#546173';
+    tile.setAttribute('aria-pressed', String(name === selectedDistrict));
+    tile.setAttribute('aria-label', name + (winner ? ' · ' + winner.name + ' 선두' : ' · 선두 미정'));
+    if (winner) leaders.set(winner.name, (leaders.get(winner.name) || 0) + 1);
+    else unresolved++;
+  }
+  set('map-summary', frame ? (frame.complete ? '최종 구별 1위 · ' : '모의 집계 구별 선두 · ') +
+    [...leaders].map(([name, count]) => name + ' ' + count + '곳').concat(unresolved ? ['미정 ' + unresolved + '곳'] : []).join(' / ')
+    : '개표 재생을 시작하면 자치구별 선두가 표시됩니다.');
+  const legend = (frame?.candidates || []).map((candidate, index) => {
+    const item = document.createElement('li');
+    const swatch = document.createElement('span');
+    swatch.className = 'swatch';
+    swatch.style.backgroundColor = colors[index];
+    item.append(swatch, candidate.party + ' ' + candidate.name);
+    return item;
+  });
+  get('map-legend').replaceChildren(...legend);
+  const district = districts[selectedDistrict];
+  const ranked = candidateRank(frame, district);
+  set('district-info', selectedDistrict + (district?.counted_units ? ' · 개표 단위 ' + district.counted_units + '/' + district.total_units +
+    ' · ' + ranked.map(candidate => candidate.name + ' ' + number.format(candidate.votes) + '표').join(' / ') : ' · 집계 대기'));
+}
+
+for (const [row, [offset, names]] of districtRows.entries()) {
+  for (const [column, label] of names.entries()) {
+    const name = label + '구';
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'district-tile';
+    tile.textContent = label;
+    tile.style.setProperty('--x', ((column + offset) * 14) + '%');
+    tile.style.setProperty('--y', (row * 15.4) + '%');
+    tile.addEventListener('click', () => {selectedDistrict = name; renderDistricts(lastFrame);});
+    tiles.set(name, tile);
+    get('district-grid').append(tile);
+  }
+}
+renderDistricts();
+
+const history = [
+  ['2010 지방선거', '오세훈', 47.43, '한명숙', 46.83, 8, 17, '#ad3d31', '#0366a3'],
+  ['2011 보궐선거', '박원순', 53.40, '나경원', 46.21, 21, 4, '#0366a3', '#ad3d31'],
+  ['2014 지방선거', '박원순', 56.12, '정몽준', 43.02, 22, 3, '#0366a3', '#ad3d31'],
+  ['2018 지방선거', '박원순', 52.79, '김문수', 23.34, 25, 0, '#0366a3', '#ad3d31'],
+  ['2021 보궐선거', '오세훈', 57.50, '박영선', 39.18, 25, 0, '#ad3d31', '#0366a3'],
+  ['2022 지방선거', '오세훈', 59.05, '송영길', 39.23, 25, 0, '#ad3d31', '#0366a3'],
+  ["2026 지방선거","오세훈",49.22,"정원오",48.07,10,15,"#ad3d31","#0366a3"]
+];
+for (const [label, winner, winnerShare, runner, runnerShare, winnerDistricts, runnerDistricts, winColor, runnerColor] of history) {
+  const card = document.createElement('article');
+  card.className = 'history-card';
+  const heading = document.createElement('h3');
+  heading.textContent = label;
+  const summary = document.createElement('p');
+  summary.textContent = winner + ' ' + winnerShare.toFixed(2) + '% · 당선';
+  const ratio = document.createElement('progress');
+  ratio.max = 100;
+  ratio.value = winnerShare;
+  ratio.style.accentColor = winColor;
+  ratio.setAttribute('aria-label', winner + ' 득표율');
+  const secondary = document.createElement('p');
+  secondary.textContent = runner + ' ' + runnerShare.toFixed(2) + '%';
+  const count = document.createElement('p');
+  count.textContent = '구별 1위 · ' + winner + ' ' + winnerDistricts + '곳 / ' + runner + ' ' + runnerDistricts + '곳';
+  const dots = document.createElement('div');
+  dots.className = 'dots';
+  dots.setAttribute('aria-hidden', 'true');
+  for (let i = 0; i < 25; i++) {
+    const dot = document.createElement('span');
+    dot.style.backgroundColor = i < winnerDistricts ? winColor : i < winnerDistricts + runnerDistricts ? runnerColor : '#546173';
+    dots.append(dot);
+  }
+  card.append(heading, summary, ratio, secondary, dots, count);
+  get('history-grid').append(card);
+}
 </script>
 </html>
