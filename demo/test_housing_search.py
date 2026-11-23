@@ -23,11 +23,11 @@ class HousingSearchTest(unittest.TestCase):
     def test_question_covers_every_ready_candidate_and_reports_pending(self):
         result = self.index.search(self.dataset["question"])
         self.assertEqual(set(result["coverage"]["returned_candidates"]),
-                         {"오세훈", "김정철", "유지혜", "이강산", "권영국"})
-        self.assertEqual(result["coverage"]["not_returned_candidates"], ["정원오"])
-        self.assertEqual(result["coverage"]["pending_evidence"][0]["candidate"], "정원오")
+                         {"정원오", "오세훈", "김정철", "유지혜", "이강산", "권영국"})
+        self.assertEqual(result["coverage"]["not_returned_candidates"], [])
+        self.assertEqual(result["coverage"]["pending_evidence"], [])
         self.assertTrue(result["candidate_balancing"])
-        self.assertFalse(result["coverage"]["all_requested_candidates_returned"])
+        self.assertTrue(result["coverage"]["all_requested_candidates_returned"])
 
     def test_monthly_rent_finds_the_actual_support_page(self):
         result = self.index.search("월세 지원", limit=3)
@@ -45,10 +45,21 @@ class HousingSearchTest(unittest.TestCase):
         self.assertTrue(all(r["candidate"] == "이강산" for r in result["results"]))
         self.assertTrue(all(r["candidate_withdrawn"] for r in result["results"]))
 
-    def test_named_pending_candidate_is_never_filled_from_other_candidates(self):
+    def test_verified_candidate_uses_its_own_page_and_pending_is_excluded(self):
         result = self.index.search("정원오 주택 공급")
-        self.assertEqual(result["results"], [])
-        self.assertEqual(result["coverage"]["pending_evidence"][0]["document_id"],
+        self.assertTrue(result["results"])
+        self.assertTrue(all(r["candidate"] == "정원오" for r in result["results"]))
+        self.assertEqual(result["results"][0]["citation"], "[SEOUL26-PB-01, PDF 7쪽]")
+        dataset = copy.deepcopy(self.dataset)
+        verified = dataset["chunks"].pop(0)
+        dataset["pending_chunks"].append({
+            "candidate": verified["candidate"], "document_id": verified["document_id"],
+            "rag_eligible": False, "pdf_url": verified["stored_pdf_url"],
+            "exclusion_reason": "test: page pending",
+        })
+        pending_result = HousingSearch(dataset).search("정원오 주택 공급")
+        self.assertEqual(pending_result["results"], [])
+        self.assertEqual(pending_result["coverage"]["pending_evidence"][0]["document_id"],
                          "SEOUL26-PB-01")
 
     def test_unrelated_question_does_not_invent_evidence(self):
@@ -101,8 +112,8 @@ class HousingSearchTest(unittest.TestCase):
     def test_status_and_page_are_served(self):
         response = self.client.get("/api/housing/status")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["ready_chunks"], 16)
-        self.assertEqual(response.json()["pending_chunks"], 1)
+        self.assertEqual(response.json()["ready_chunks"], 17)
+        self.assertEqual(response.json()["pending_chunks"], 0)
         self.assertEqual(len(response.json()["candidate_options"]), 6)
         page = self.client.get("/housing-search")
         self.assertEqual(page.status_code, 200)
@@ -156,7 +167,7 @@ class HousingAPIUnitTest(unittest.TestCase):
         self.assertTrue({"/housing-search", "/api/housing/status",
                          "/api/housing/search", "/ws/replay"} <= paths)
         self.assertTrue(Path(housing_search_page().path).is_file())
-        self.assertEqual(housing_search_status()["pending_chunks"], 1)
+        self.assertEqual(housing_search_status()["pending_chunks"], 0)
         self.assertEqual(health()["role"], "broadcast")
         self.assertIsInstance(final_result(), dict)
 
