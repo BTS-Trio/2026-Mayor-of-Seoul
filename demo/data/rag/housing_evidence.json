@@ -7,13 +7,13 @@
   "source_spreadsheet": "https://docs.google.com/spreadsheets/d/1zJn7d3s1yMoN_fYs3avMUxzzJWDA2Nwv0tuzPW4nl2o/edit#gid=620891990",
   "counts": {
     "documents": 8,
-    "ready_chunks": 16,
-    "pending_chunks": 1,
+    "ready_chunks": 17,
+    "pending_chunks": 0,
     "expected_candidates": 6,
-    "ready_candidates": 5
+    "ready_candidates": 6
   },
-  "comparison_coverage_complete": false,
-  "processing_status": "검색 데이터 파일 작성. 검색 인덱스 구축·검색 실행·기사 생성은 미실행.",
+  "comparison_coverage_complete": true,
+  "processing_status": "정원오 PDF 7쪽 본문·쪽수 보완 완료. 동일 질문 재검색·기사 초안·원문 대조 종합 검수는 후속 단계.",
   "usage": {
     "load": "Python 3.10 이상: UTF-8 JSON의 chunks 배열을 검색 대상으로 사용.",
     "retrieve": "text·summary를 검색하고 document_id·pdf_page·citation·출처 링크를 검색 결과에 유지.",
@@ -32,8 +32,13 @@
       "stored_pdf_url": "https://drive.google.com/file/d/1DKDKDx6O6UYeGYRhOPhWM_EVGQmGcOfo/view",
       "document_registry_url": "https://docs.google.com/spreadsheets/d/1zJn7d3s1yMoN_fYs3avMUxzzJWDA2Nwv0tuzPW4nl2o/edit#gid=202604&range=A3",
       "file_size_bytes": 17984095,
-      "pdf_pages_verified": null,
-      "provenance": "사용자가 선관위 주소에서 내려받아 Drive에 보존한 PDF의 추출 텍스트를 사용."
+      "pdf_pages_verified": 12,
+      "provenance": "사용자가 선관위 주소에서 내려받아 Drive에 보존한 PDF의 추출 텍스트를 사용.",
+      "page_verification": {
+        "verified_date_kst": "2026-11-23",
+        "method": "stored_pdf_viewer_page_count_and_page_7_text_and_image",
+        "scope": "총 12쪽 및 PDF 7쪽 주거 공약 확인. 전체 페이지 시각 검수는 아님."
+      }
     },
     {
       "document_id": "SEOUL26-P5-02",
@@ -135,6 +140,32 @@
     }
   ],
   "chunks": [
+    {
+      "chunk_id": "SEOUL26-PB-01:p007:housing",
+      "document_id": "SEOUL26-PB-01",
+      "candidate": "정원오",
+      "candidate_withdrawn": false,
+      "pdf_page": 7,
+      "page_number_basis": "PDF 첫 페이지를 1쪽으로 셈",
+      "topic": "주거",
+      "summary": "민간·공공 정비사업 착공과 실속·맞춤형 주택 공급",
+      "text": "착착개발 _ 신통기획보다 더 빠르고 안전하게\n2031년까지 민간·공공 정비사업으로 36만 호 이상 착공\n획기적인 절차 통합과 사업성 개선으로 최대 10년 이내로 단축 「도시 및 주거환경정비법」 개정 추진\n500세대 미만은 자치구에 권한 이양\n시장 직속 정비사업 전문 매니저 전 구역 파견\n민간·공공 정비사업을 통해 확보한 주택 일부 부담가능한(affordable) 실속주택 공급\n도심 내 연립·다세대주택 및 오피스텔, 도시형생활주택 공급\n청년·신혼부부·시니어 맞춤형 주택 공급",
+      "evidence_text": "2031년까지 민간·공공 정비사업으로 36만 호 이상 착공",
+      "citation": "[SEOUL26-PB-01, PDF 7쪽]",
+      "source_site_url": "https://policy.nec.go.kr/",
+      "official_pdf_download_url": "https://policy.nec.go.kr/plc/common/downloadFile.do?requestedFileName=20260603_%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C_%EC%A0%95%EC%9B%90%EC%98%A4_%EC%84%A0%EA%B1%B0%EA%B3%B5%EB%B3%B4.pdf&requestedFullPath=20260603/PDF/PBINFO/1100/003_100157144_20260520_1.pdf",
+      "stored_pdf_url": "https://drive.google.com/file/d/1DKDKDx6O6UYeGYRhOPhWM_EVGQmGcOfo/view",
+      "document_registry_url": "https://docs.google.com/spreadsheets/d/1zJn7d3s1yMoN_fYs3avMUxzzJWDA2Nwv0tuzPW4nl2o/edit#gid=202604&range=A3",
+      "registry_row_url": "https://docs.google.com/spreadsheets/d/1zJn7d3s1yMoN_fYs3avMUxzzJWDA2Nwv0tuzPW4nl2o/edit#gid=620891990&range=A4",
+      "verification_status": "본문·쪽수 확인·RAG 사용 가능",
+      "extraction_method": "stored_pdf_viewer_text_and_image_verified",
+      "rag_eligible": true,
+      "claim_type": "candidate_pledge",
+      "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
+      "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
+      "verified_date_kst": "2026-11-23",
+      "verification_note": "저장 PDF 총 12쪽. PDF 첫 장=1쪽 기준 7쪽 ‘착착개발’ 대조. 36만 호 이상은 2031년까지의 착공 목표이며 완공·입주 실적이 아님."
+    },
     {
       "chunk_id": "SEOUL26-P5-02:p001:housing",
       "document_id": "SEOUL26-P5-02",
@@ -520,24 +551,6 @@
       "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음."
     }
   ],
-  "pending_chunks": [
-    {
-      "row_index": 4,
-      "candidate": "정원오",
-      "withdrawn": false,
-      "document_id": "SEOUL26-PB-01",
-      "pdf_page": null,
-      "summary": "민간·공공 정비사업 착공과 실속·맞춤형 주택 공급",
-      "evidence_text": "2031년까지 민간·공공 정비사업으로 36만 호 이상 착공",
-      "review_status": "쪽수 미확인·RAG 보류",
-      "document_type": "선거공보",
-      "document_title": "20260603_서울특별시_정원오_선거공보.pdf",
-      "source_url": "https://policy.nec.go.kr/",
-      "official_pdf_url": "https://policy.nec.go.kr/plc/common/downloadFile.do?requestedFileName=20260603_%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C_%EC%A0%95%EC%9B%90%EC%98%A4_%EC%84%A0%EA%B1%B0%EA%B3%B5%EB%B3%B4.pdf&requestedFullPath=20260603/PDF/PBINFO/1100/003_100157144_20260520_1.pdf",
-      "pdf_url": "https://drive.google.com/file/d/1DKDKDx6O6UYeGYRhOPhWM_EVGQmGcOfo/view",
-      "document_registry_url": "https://docs.google.com/spreadsheets/d/1zJn7d3s1yMoN_fYs3avMUxzzJWDA2Nwv0tuzPW4nl2o/edit#gid=202604&range=A3",
-      "rag_eligible": false,
-      "exclusion_reason": "최신 근거연결 표의 PDF 쪽수가 미확인이므로 검색·인용 대상에서 제외."
-    }
-  ]
+  "pending_chunks": [],
+  "updated_date_kst": "2026-11-23"
 }
