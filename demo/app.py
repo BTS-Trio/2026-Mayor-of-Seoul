@@ -5,10 +5,12 @@ import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from websockets.asyncio.client import connect
 from websockets.exceptions import WebSocketException
+
+from housing_search import get_housing_search
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
@@ -21,6 +23,34 @@ app = FastAPI(title="서울시장 모의 개표 · 방송 송출 서버")
 @app.get("/")
 def dashboard():
     return FileResponse(ROOT / "index.html")
+
+
+@app.get("/housing-search")
+def housing_search_page():
+    return FileResponse(ROOT / "housing-search.html")
+
+
+def housing_index():
+    try:
+        return get_housing_search()
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        raise HTTPException(
+            status_code=503, detail="검색 자료의 ID·쪽수·출처 정보를 확인해 주세요."
+        ) from error
+
+
+@app.get("/api/housing/status")
+def housing_search_status():
+    return housing_index().status()
+
+
+@app.get("/api/housing/search")
+def search_housing_evidence(q: str = "", candidate: str = "", limit: int = 10):
+    index = housing_index()
+    try:
+        return index.search(q, candidate=candidate, limit=limit)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
 
 
 @app.get("/embic.webp")
@@ -89,3 +119,4 @@ async def replay(socket: WebSocket):
         await socket.close(code=1000)
     except (WebSocketDisconnect, OSError):
         return
+
