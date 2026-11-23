@@ -26,7 +26,7 @@
       "claim_type": "candidate_pledge",
       "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
       "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
-      "score": 7.453816
+      "score": 7.453041
     },
     {
       "chunk_id": "SEOUL26-PB-06:p001:housing",
@@ -51,7 +51,10 @@
       "claim_type": "candidate_pledge",
       "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
       "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
-      "score": 6.518731
+      "candidate_status_source_ids": [
+        "NEC-SEOUL26-WD-001"
+      ],
+      "score": 6.591892
     },
     {
       "chunk_id": "SEOUL26-P5-05:p002:housing",
@@ -76,7 +79,7 @@
       "claim_type": "candidate_pledge",
       "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
       "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
-      "score": 5.435983
+      "score": 5.334656
     },
     {
       "chunk_id": "SEOUL26-P5-04:p002:housing",
@@ -101,7 +104,7 @@
       "claim_type": "candidate_pledge",
       "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
       "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
-      "score": 4.285881
+      "score": 4.287332
     },
     {
       "chunk_id": "SEOUL26-PB-07:p001:housing",
@@ -126,7 +129,34 @@
       "claim_type": "candidate_pledge",
       "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
       "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
-      "score": 3.886615
+      "score": 3.995994
+    },
+    {
+      "chunk_id": "SEOUL26-PB-01:p007:housing",
+      "document_id": "SEOUL26-PB-01",
+      "candidate": "정원오",
+      "candidate_withdrawn": false,
+      "pdf_page": 7,
+      "page_number_basis": "PDF 첫 페이지를 1쪽으로 셈",
+      "topic": "주거",
+      "summary": "민간·공공 정비사업 착공과 실속·맞춤형 주택 공급",
+      "text": "착착개발 _ 신통기획보다 더 빠르고 안전하게\n2031년까지 민간·공공 정비사업으로 36만 호 이상 착공\n획기적인 절차 통합과 사업성 개선으로 최대 10년 이내로 단축 「도시 및 주거환경정비법」 개정 추진\n500세대 미만은 자치구에 권한 이양\n시장 직속 정비사업 전문 매니저 전 구역 파견\n민간·공공 정비사업을 통해 확보한 주택 일부 부담가능한(affordable) 실속주택 공급\n도심 내 연립·다세대주택 및 오피스텔, 도시형생활주택 공급\n청년·신혼부부·시니어 맞춤형 주택 공급",
+      "evidence_text": "2031년까지 민간·공공 정비사업으로 36만 호 이상 착공",
+      "citation": "[SEOUL26-PB-01, PDF 7쪽]",
+      "source_site_url": "https://policy.nec.go.kr/",
+      "official_pdf_download_url": "https://policy.nec.go.kr/plc/common/downloadFile.do?requestedFileName=20260603_%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C_%EC%A0%95%EC%9B%90%EC%98%A4_%EC%84%A0%EA%B1%B0%EA%B3%B5%EB%B3%B4.pdf&requestedFullPath=20260603/PDF/PBINFO/1100/003_100157144_20260520_1.pdf",
+      "stored_pdf_url": "https://drive.google.com/file/d/1DKDKDx6O6UYeGYRhOPhWM_EVGQmGcOfo/view",
+      "document_registry_url": "https://docs.google.com/spreadsheets/d/1zJn7d3s1yMoN_fYs3avMUxzzJWDA2Nwv0tuzPW4nl2o/edit#gid=202604&range=A3",
+      "registry_row_url": "https://docs.google.com/spreadsheets/d/1zJn7d3s1yMoN_fYs3avMUxzzJWDA2Nwv0tuzPW4nl2o/edit#gid=620891990&range=A4",
+      "verification_status": "본문·쪽수 확인·RAG 사용 가능",
+      "extraction_method": "stored_pdf_viewer_text_and_image_verified",
+      "rag_eligible": true,
+      "claim_type": "candidate_pledge",
+      "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
+      "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
+      "verified_date_kst": "2026-11-23",
+      "verification_note": "저장 PDF 총 12쪽. PDF 첫 장=1쪽 기준 7쪽 ‘착착개발’ 대조. 36만 호 이상은 2031년까지의 착공 목표이며 완공·입주 실적이 아님.",
+      "score": 2.123879
     },
     {
       "chunk_id": "SEOUL26-P5-02:p004:housing",
@@ -151,7 +181,7 @@
       "claim_type": "candidate_pledge",
       "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
       "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
-      "score": 4.59957
+      "score": 4.62811
     },
     {
       "chunk_id": "SEOUL26-P5-07:p004:housing",
@@ -176,7 +206,7 @@
       "claim_type": "candidate_pledge",
       "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
       "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
-      "score": 3.455146
+      "score": 3.556127
     },
     {
       "chunk_id": "SEOUL26-P5-07:p002:housing",
@@ -201,7 +231,7 @@
       "claim_type": "candidate_pledge",
       "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
       "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
-      "score": 3.32615
+      "score": 3.317111
     },
     {
       "chunk_id": "SEOUL26-P5-04:p004:housing",
@@ -226,32 +256,7 @@
       "claim_type": "candidate_pledge",
       "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
       "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
-      "score": 3.29207
-    },
-    {
-      "chunk_id": "SEOUL26-P5-07:p003:housing",
-      "document_id": "SEOUL26-P5-07",
-      "candidate": "권영국",
-      "candidate_withdrawn": false,
-      "pdf_page": 3,
-      "page_number_basis": "PDF 첫 페이지를 1쪽으로 셈",
-      "topic": "주거",
-      "summary": "의료·복지와 결합한 노년 주거지원",
-      "text": "공약순위 : 3 돌봄의 무게를 덜고, 돌봄이 활력이 되는\r\n공공돌봄도시 서울\r\n□ 목 표\r\n ○ 돌봄의 사회화를 통해 개인과 가족의 부담을 덜고, 생애 맞춤형으로 질 좋은 \r\n돌봄을 제공하며, 일자리 창출 등 지역의 활력 창출\r\n□ 이행방법\r\n ○ 돌봄의 사회화, 돌봄 공동체 서울\r\n - 서울사회서비스원 즉각 복원, 자치구별 공공통합돌봄센터 설치\r\n - ‘서울형 돌봄 노동 가이드라인’ 제정 : 직접고용 확대, 민간에도 생활임금 \r\n적용, 야간근무 등 2인1조 의무화, 휴게 시간 보장 등\r\n - 돌봄 인력 확대 : 가용재정 우선투입, 신규 채용 50%를 현장전문가로 충원\r\n - 공공병원 간호간병통합서비스 100% 실시 및 민간병원 확대\r\n - 서울시 직영 간병인 공공 플랫폼 ‘서울 간병지원센터’ 설립\r\n ○ 돌봄이 지역의 활력이 되는 서울\r\n - 돌봄 일자리보장제(지역 돌봄 사관학교 운영) : 기초돌봄부터 전문 간호․심리\r\n상담까지 체계적 교육 무상 제공 후 돌봄 일자리로 연계\r\n - 이웃돌봄, 반찬나눔 등 돌봄․공동체 활동에 참여소득 지급(지역화폐 활용) ○ 아동 돌봄, 부모의 삶과 아동의 성장이 조화롭게 공존하는 서울\r\n - 교육청과 협약을 통해 초등돌봄교사 채용, 국공립어린이집 우선 확충\r\n - 마을공간 활용 마을학교와 주민이 참여하는 마을교사 제도 도입\r\n - 아빠 육아휴직 3개월 의무 할당제, ‘서울형 대체인력지원센터’ 설립\r\n ○ 어르신 돌봄, 자식들의 짐이 되지 않는 건강하고 즐거운 노후\r\n - 살던 곳에서 노후를 보내도록 의료․복지 결합된 공공실버주택 확충\r\n - 경로당을 어르신건강문화센터로 개편, 반찬배달 및 함께식사 지원 확대\r\n - 약국과 편의점을 ‘돌봄 보안관’으로 지정하여 위기 신호 조기 발견\r\n - ‘서울형 기초연금 보조’와 전문성․공익성 갖춘 어르신 일자리 신설\r\n□ 이행기간\r\n ○ 임기 내\r\n□ 재원조달방안 등\r\n ○ AI 전환기금 조성, 재산세 탄력세율 조정, 보건복지부․서울시교육청 등 유관기관과 \r\n협약, 기존 예산 구조조정 및 재정영향평가 강화 등",
-      "evidence_text": "의료·복지 결합된 공공실버주택 확충",
-      "citation": "[SEOUL26-P5-07, PDF 3쪽]",
-      "source_site_url": "https://policy.nec.go.kr/",
-      "official_pdf_download_url": "https://policy.nec.go.kr/plc/common/downloadFile.do?requestedFileName=20260603_%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C_%EA%B6%8C%EC%98%81%EA%B5%AD_5%EB%8C%80%EA%B3%B5%EC%95%BD.pdf&requestedFullPath=20260603/PDF/P5_PRMS_PUB/1100/001_100162720_20260516_1.pdf",
-      "stored_pdf_url": "https://drive.google.com/file/d/1fnpanNN0jwQeWCQ-aVkVFHJ0CICRzklh/view",
-      "document_registry_url": "https://docs.google.com/spreadsheets/d/1zJn7d3s1yMoN_fYs3avMUxzzJWDA2Nwv0tuzPW4nl2o/edit#gid=202604&range=A12",
-      "registry_row_url": "https://docs.google.com/spreadsheets/d/1zJn7d3s1yMoN_fYs3avMUxzzJWDA2Nwv0tuzPW4nl2o/edit#gid=620891990&range=A17",
-      "verification_status": "본문·주제 연결 확인",
-      "extraction_method": "uploaded_pdf_pledge_section",
-      "rag_eligible": true,
-      "claim_type": "candidate_pledge",
-      "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
-      "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
-      "score": 3.158329
+      "score": 3.251301
     }
   ],
   "coverage": {
@@ -268,20 +273,14 @@
       "김정철",
       "오세훈",
       "유지혜",
-      "이강산"
-    ],
-    "not_returned_candidates": [
+      "이강산",
       "정원오"
     ],
-    "pending_evidence": [
-      {
-        "candidate": "정원오",
-        "document_id": "SEOUL26-PB-01",
-        "reason": "최신 근거연결 표의 PDF 쪽수가 미확인이므로 검색·인용 대상에서 제외.",
-        "stored_pdf_url": "https://drive.google.com/file/d/1DKDKDx6O6UYeGYRhOPhWM_EVGQmGcOfo/view"
-      }
-    ],
-    "all_requested_candidates_returned": false
+    "not_returned_candidates": [],
+    "pending_evidence": [],
+    "all_requested_candidates_returned": true
   },
-  "scope": "제출 공약의 내용 검색. 공약 이행·실현 가능성 검증이나 기사 생성은 포함하지 않음."
+  "scope": "제출 공약의 내용 검색. 공약 이행·실현 가능성 검증이나 기사 생성은 포함하지 않음.",
+  "executed_date_kst": "2026-11-23",
+  "execution_scope": "Python search function; HTTP API not tested"
 }
