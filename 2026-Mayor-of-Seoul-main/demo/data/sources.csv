@@ -1,0 +1,8 @@
+source_id,provider,title,reference_date,access_date,status,url
+SRC-NEC-01,중앙선거관리위원회,시·도지사선거 개표결과 공개 항목,2026-06-03,2026-11-20,전국 시·도지사 원본 CSV 수집·서울 확정치 검증·이용허락범위 제한 없음,https://www.data.go.kr/data/15162288/fileData.do
+SRC-FINAL-01,한국경제,서울시장 최종 개표 5인 득표 및 총계,2026-06-05,2026-11-20,최종 후보 5인 및 총계 사용,https://www.hankyung.com/article/2026060599297
+SRC-FINAL-02,연합뉴스,서울시장 최종 개표 확정 보도,2026-06-05,2026-11-20,상위 2인 및 격차 교차검증,https://www.yna.co.kr/amp/view/AKR20260605109900001
+SRC-FINAL-03,한겨레,서울시장 본투표 개표 완료 보도,2026-06-05,2026-11-20,상위 2인 및 격차 교차검증,https://www.hani.co.kr/arti/politics/politics_general/1262168.html
+SRC-NEC-02,중앙선거관리위원회,정책공약마당,미기록,2026-11-20,공식 문서 목록 확인 및 후보별 원문 확보 예정,https://policy.nec.go.kr/plc/main/initUMAMain.do
+SRC-NEC-03,중앙선거관리위원회,구·시·군의장선거 최종 개표,2026-06-03,2026-11-20,후속 확장 후보,https://www.data.go.kr/data/15162558/fileData.do
+SRC-NEC-04,중앙선거관리위원회,구·시·군의회의원선거 최종 개표,2026-06-03,2026-11-20,후속 확장 후보,https://www.data.go.kr/data/15162708/fileData.do
