@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse
 from websockets.asyncio.client import connect
 from websockets.exceptions import WebSocketException
 
+from housing_review import router as housing_review_router
 from housing_search import get_housing_search
 
 ROOT = Path(__file__).resolve().parent
@@ -19,6 +20,7 @@ KST = timezone(timedelta(hours=9))
 FEED_URL = os.environ.get("ELECTION_FEED_URL", "ws://127.0.0.1:8001/ws/feed")
 MESSAGE_TIMEOUT_SECONDS = 10
 app = FastAPI(title="서울시장 모의 개표 · 방송 송출 서버")
+app.include_router(housing_review_router)
 
 
 @app.get("/")
