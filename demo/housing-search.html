@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>서울시장 주거 공약 근거 검색</title>
+  <style>
+    :root{font-family:system-ui,sans-serif;color:#15253b;background:#edf3fa}
+    body{max-width:1040px;margin:32px auto;padding:0 20px}
+    a{color:#15476e} h1{font-size:clamp(1.7rem,4vw,2.5rem);margin:12px 0}
+    section,article{background:white;border:1px solid #d4dce6;border-radius:12px;padding:20px;margin:16px 0}
+    label{display:block;font-weight:700;margin:12px 0 6px}
+    input,select,button{box-sizing:border-box;font:inherit;padding:11px;border-radius:6px}
+    input,select{border:1px solid #9cabbc;width:100%;background:white}
+    button{background:#16466d;color:white;border:0;cursor:pointer;align-self:end}
+    button:disabled{background:#728297;cursor:wait}
+    .controls{display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:14px}
+    .muted{font-size:.9rem;color:#45566a;line-height:1.6}
+    .pending{background:#fff6e6;border:1px solid #dfca9e;border-radius:8px;padding:14px;margin-top:14px}
+    .pending[hidden]{display:none}
+    .badge{font-size:.8rem;background:#fff0ca;padding:3px 8px;border-radius:4px}
+    .citation{font-weight:700;color:#16466d;overflow-wrap:anywhere}
+    .links{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px}
+    h2{font-size:1.15rem;margin:0 0 8px}
+    blockquote{border-left:3px solid #bacfe0;margin:14px 0;padding:8px 14px;line-height:1.7}
+    pre{white-space:pre-wrap;word-break:break-word;font:inherit;font-size:.9rem;line-height:1.7}
+    summary{cursor:pointer;font-weight:650;margin-top:14px}
+    :focus-visible{outline:3px solid #0866ac;outline-offset:3px}
+    @media(max-width:560px){body{padding:0 12px;margin:20px auto}.controls{grid-template-columns:1fr}section,article{padding:16px}}
+  </style>
+</head>
+<body>
+  <a href="/">개표 데스크로 돌아가기</a>
+  <h1>주거 공약 근거 검색</h1>
+  <p class="muted">후보가 제출한 공약에서 질문과 관련된 근거를 찾습니다. PDF 첫 페이지를 1쪽으로 셉니다.</p>
+  <section aria-label="근거 검색">
+    <form id="search-form">
+      <label for="question">기사 질문</label>
+      <input id="question" name="q" maxlength="500" required
+        value="2026년 서울시장 후보들은 주거 문제 해결을 위해 어떤 공약을 제시했나?">
+      <div class="controls">
+        <div>
+          <label for="candidate">후보</label>
+          <select id="candidate"><option value="">전체 후보</option></select>
+        </div>
+        <button id="submit" type="submit" disabled>근거 검색</button>
+      </div>
+    </form>
+    <p id="dataset-status" class="muted">검색 자료를 확인하고 있습니다.</p>
+    <div id="pending" class="pending" role="status" hidden></div>
+  </section>
+  <p id="search-status" role="status" aria-live="polite"></p>
+  <div id="results"></div>
+  <script>
+    const byId = id => document.getElementById(id);
+    let latestRequest = 0;
+    function text(tag, value, className) {
+      const node = document.createElement(tag);
+      node.textContent = value;
+      if (className) node.className = className;
+      return node;
+    }
+    function sourceLink(label, url) {
+      const link = text('a', label);
+      const parsed = new URL(url);
+      if (parsed.protocol !== 'https:') throw new Error('출처 주소를 확인해 주세요.');
+      link.href = parsed.href;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      return link;
+    }
+    async function getJSON(url) {
+      const response = await fetch(url, {headers: {'Accept': 'application/json'}});
+      const data = await response.json();
+      if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : '검색 요청을 확인해 주세요.');
+      return data;
+    }
+    function renderResults(data) {
+      const target = byId('results');
+      target.replaceChildren();
+      for (const result of data.results) {
+        const card = document.createElement('article');
+        const heading = text('h2', result.candidate);
+        if (result.candidate_withdrawn) {
+          heading.append(' ', text('span', '사퇴', 'badge'));
+        }
+        card.append(heading, text('p', result.summary));
+        card.append(text('p', result.citation, 'citation'));
+        card.append(text('blockquote', result.evidence_text));
+        card.append(text('p', '/ 는 떨어진 근거 구절을 구분합니다. 후보가 제시한 공약 내용입니다.', 'muted'));
+        const links = text('div', '', 'links');
+        links.append(
+          sourceLink('저장 PDF 보기', result.stored_pdf_url),
+          sourceLink('공약자료목록', result.document_registry_url),
+          sourceLink('공식 제공처 사이트', result.source_site_url)
+        );
+        card.append(links);
+        const detail = document.createElement('details');
+        detail.append(text('summary', '검색 근거 본문 보기'), text('pre', result.text));
+        card.append(detail);
+        target.append(card);
+      }
+      const pending = data.coverage.pending_evidence;
+      const notice = byId('pending');
+      notice.replaceChildren();
+      notice.hidden = !pending.length;
+      if (pending.length) {
+        notice.append(text('strong', '검색에 포함하지 못한 근거'));
+        for (const item of pending) {
+          const line = text('p', item.candidate + ' · ' + item.document_id + ' — ' + item.reason);
+          line.append(' ', sourceLink('PDF 확인', item.stored_pdf_url));
+          notice.append(line);
+        }
+      }
+      const names = data.coverage.returned_candidates;
+      byId('search-status').textContent = data.results.length
+        ? names.join('·') + ' 후보의 근거 ' + data.results.length + '개를 찾았습니다.'
+        : '이번 검색에서 일치하는 근거를 찾지 못했습니다. 해당 후보에게 공약이 없다는 뜻은 아닙니다.';
+    }
+    async function search(event) {
+      if (event) event.preventDefault();
+      const request = ++latestRequest;
+      const button = byId('submit');
+      button.disabled = true;
+      byId('search-status').textContent = '관련 근거를 검색하고 있습니다.';
+      const params = new URLSearchParams({
+        q: byId('question').value,
+        candidate: byId('candidate').value,
+        limit: '10'
+      });
+      try {
+        const data = await getJSON('/api/housing/search?' + params);
+        if (request === latestRequest) renderResults(data);
+      } catch (error) {
+        if (request === latestRequest) {
+          byId('results').replaceChildren();
+          byId('pending').hidden = true;
+          byId('search-status').textContent = error.message || '검색 서버 연결을 확인해 주세요.';
+        }
+      } finally {
+        if (request === latestRequest) button.disabled = false;
+      }
+    }
+    byId('search-form').addEventListener('submit', search);
+    async function initialize() {
+      try {
+        const data = await getJSON('/api/housing/status');
+        byId('question').value = data.question;
+        byId('dataset-status').textContent =
+          '검색 근거 ' + data.ready_chunks + '개 · 확인 대기 ' + data.pending_chunks + '개 · 자료 준비일 ' + data.prepared_date_kst;
+        for (const item of data.candidate_options) {
+          const option = text('option', item.name + (item.withdrawn ? ' (사퇴)' : '') +
+            (item.ready_chunks ? '' : ' · 근거 확인 대기'));
+          option.value = item.name;
+          byId('candidate').append(option);
+        }
+        byId('submit').disabled = false;
+        await search();
+      } catch (error) {
+        byId('dataset-status').textContent = '검색 자료를 불러오지 못했습니다. ' + error.message;
+      }
+    }
+    initialize();
+  </script>
+</body>
+</html>

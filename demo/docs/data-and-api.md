@@ -27,11 +27,16 @@
 
 ## 통신 명세
 
-| 방식 | 주소 | 결과 |
-| --- | --- | --- |
-| HTTP GET | / | 개표 대시보드 |
-| HTTP GET | /api/final | 서울시장 확정 집계 요약 |
-| WebSocket | /ws/replay | 최초 0단계 즉시 전송, 이후 2초마다 순번대로 전송. complete=true 전송 후 정상 종료 |
+| 실행 서버 | 방식 | 주소 | 결과 |
+| --- | --- | --- | --- |
+| 선관위 역할 · 8001 | HTTP GET | /health | `election-source` 역할 확인 |
+| 선관위 역할 · 8001 | WebSocket | /ws/feed | 연결마다 모의 개표를 0단계부터 순서대로 송신. `source_sent_at` 포함 |
+| 방송사 역할 · 8000 | HTTP GET | / | 개표 대시보드 |
+| 방송사 역할 · 8000 | HTTP GET | /health | `broadcast` 역할 확인 |
+| 방송사 역할 · 8000 | HTTP GET | /api/final | 서울시장 확정 집계 요약 |
+| 방송사 역할 · 8000 | WebSocket | /ws/replay | 선관위 역할 서버에 연결해 수신 순서를 확인한 뒤 `delivered_at`을 붙여 브라우저에 전송 |
+
+브라우저마다 새 재생 연결을 연다. 기본적으로 2초마다 한 단계씩 송신하고, 마지막 단계에서 `complete=true`로 종료한다. 송신 서버에 연결하지 못하거나 완료 전에 전송이 끊기면 방송사 서버가 `event=error`와 `code=election_feed_unavailable`을 보낸다.
 
 ## ERD 초안
 
