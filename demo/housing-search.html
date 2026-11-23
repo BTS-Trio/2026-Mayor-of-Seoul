@@ -32,7 +32,7 @@
 <body>
   <a href="/">개표 데스크로 돌아가기</a>
   <h1>주거 공약 근거 검색</h1>
-  <p class="muted">후보가 제출한 공약에서 질문과 관련된 근거를 찾습니다. PDF 첫 페이지를 1쪽으로 셉니다.</p>
+  <p class="muted">기존 수집 공약 일부와 교육용 공약에서 관련 근거를 찾습니다. PDF 첫 페이지를 1쪽으로 셉니다.</p>
   <section aria-label="근거 검색">
     <form id="search-form">
       <label for="question">기사 질문</label>
@@ -43,7 +43,8 @@
           <label for="candidate">후보</label>
           <select id="candidate"><option value="">전체 후보</option></select>
         </div>
-        <button id="submit" type="submit" disabled>근거 검색</button>
+        <label><input type="checkbox" id="include-withdrawn"> 사퇴 후보 포함</label>
+          <button id="submit" type="submit" disabled>근거 검색</button>
       </div>
     </form>
     <p id="dataset-status" class="muted">검색 자료를 확인하고 있습니다.</p>
@@ -62,8 +63,8 @@
     }
     function sourceLink(label, url) {
       const link = text('a', label);
-      const parsed = new URL(url);
-      if (parsed.protocol !== 'https:') throw new Error('출처 주소를 확인해 주세요.');
+      const parsed = new URL(url, location.href);
+      if (parsed.protocol !== 'https:' && !(parsed.origin === location.origin && parsed.pathname.startsWith('/sources/'))) throw new Error('출처 주소를 확인해 주세요.');
       link.href = parsed.href;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
@@ -89,11 +90,9 @@
         card.append(text('blockquote', result.evidence_text));
         card.append(text('p', '/ 는 떨어진 근거 구절을 구분합니다. 후보가 제시한 공약 내용입니다.', 'muted'));
         const links = text('div', '', 'links');
-        links.append(
-          sourceLink('저장 PDF 보기', result.stored_pdf_url),
-          sourceLink('공약자료목록', result.document_registry_url),
-          sourceLink('공식 제공처 사이트', result.source_site_url)
-        );
+        links.append(sourceLink('원문 PDF 보기', result.stored_pdf_url));
+        if (result.document_registry_url) links.append(sourceLink('공약자료목록', result.document_registry_url));
+        if (result.source_site_url) links.append(sourceLink('공식 수집처 사이트', result.source_site_url));
         card.append(links);
         const detail = document.createElement('details');
         detail.append(text('summary', '검색 근거 본문 보기'), text('pre', result.text));
@@ -126,7 +125,7 @@
       const params = new URLSearchParams({
         q: byId('question').value,
         candidate: byId('candidate').value,
-        limit: '10'
+        limit: '10', include_withdrawn: String(byId('include-withdrawn').checked)
       });
       try {
         const data = await getJSON('/api/housing/search?' + params);

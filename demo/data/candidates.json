@@ -1,0 +1,77 @@
+{
+  "label": "교육용 가상 선거 · 오세훈 공약 일부는 실제 수집 자료 · 모든 개표 수치는 가상",
+  "candidates": [
+    {
+      "candidate_id": "DEMO-C01",
+      "name": "강도윤",
+      "party": "가상 생활당",
+      "data_kind": "synthetic",
+      "candidate_withdrawn": false,
+      "status": "running",
+      "withdrawn_at": null,
+      "profile": "교육용 창작 인물 1. 가상 도시정책연구소 연구원 경력 설정.",
+      "final_votes": 430000,
+      "votes_are_synthetic": true
+    },
+    {
+      "candidate_id": "DEMO-C02",
+      "name": "오세훈",
+      "party": "국민의힘",
+      "data_kind": "collected_real",
+      "candidate_withdrawn": false,
+      "status": "running",
+      "withdrawn_at": null,
+      "profile": "기존 수집 후보명·정당 유지. 약력은 추가하지 않음.",
+      "final_votes": 450000,
+      "votes_are_synthetic": true
+    },
+    {
+      "candidate_id": "DEMO-C03",
+      "name": "서지안",
+      "party": "가상 미래당",
+      "data_kind": "synthetic",
+      "candidate_withdrawn": false,
+      "status": "running",
+      "withdrawn_at": null,
+      "profile": "교육용 창작 인물 3. 가상 도시정책연구소 연구원 경력 설정.",
+      "final_votes": 60000,
+      "votes_are_synthetic": true
+    },
+    {
+      "candidate_id": "DEMO-C04",
+      "name": "한서준",
+      "party": "가상 돌봄당",
+      "data_kind": "synthetic",
+      "candidate_withdrawn": false,
+      "status": "running",
+      "withdrawn_at": null,
+      "profile": "교육용 창작 인물 4. 가상 도시정책연구소 연구원 경력 설정.",
+      "final_votes": 40000,
+      "votes_are_synthetic": true
+    },
+    {
+      "candidate_id": "DEMO-C05",
+      "name": "윤채린",
+      "party": "가상 녹색당",
+      "data_kind": "synthetic",
+      "candidate_withdrawn": false,
+      "status": "running",
+      "withdrawn_at": null,
+      "profile": "교육용 창작 인물 5. 가상 도시정책연구소 연구원 경력 설정.",
+      "final_votes": 20000,
+      "votes_are_synthetic": true
+    },
+    {
+      "candidate_id": "DEMO-C06",
+      "name": "백태오",
+      "party": "가상 참여당",
+      "data_kind": "synthetic",
+      "candidate_withdrawn": true,
+      "status": "withdrawn",
+      "withdrawn_at": "2026-06-01T12:00:00+09:00",
+      "profile": "교육용 창작 인물 6. 가상 도시정책연구소 연구원 경력 설정.",
+      "final_votes": 0,
+      "votes_are_synthetic": true
+    }
+  ]
+}

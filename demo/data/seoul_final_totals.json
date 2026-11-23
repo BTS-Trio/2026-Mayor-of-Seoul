@@ -1,18 +1,16 @@
 {
-  "mode": "historical_official_final",
+  "mode": "synthetic",
+  "label": "교육용 가상 선거 · 오세훈 공약 일부는 실제 수집 자료 · 모든 개표 수치는 가상",
   "election_date": "2026-06-03",
   "region": "서울특별시",
-  "race": "서울특별시장",
-  "registered_voters": 8319134,
-  "total_ballots": 5289383,
-  "invalid_ballots": 56401,
-  "verified_source_ids": [
-    "SRC-NEC-01",
-    "SRC-FINAL-01",
-    "SRC-FINAL-02",
-    "SRC-FINAL-03"
-  ],
-  "official_dataset_id": "SRC-NEC-01",
+  "race": "가상 시장선거",
+  "registered_voters": 2000000,
+  "total_ballots": 1010000,
+  "valid_ballots": 1000000,
+  "invalid_ballots": 10000,
   "district_count": 25,
-  "count_reporting_units": 929
+  "count_reporting_units": 750,
+  "winner_candidate_id": "DEMO-C02",
+  "verified_source_ids": [],
+  "official_dataset_id": null
 }

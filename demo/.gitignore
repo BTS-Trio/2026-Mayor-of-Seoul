@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .env
 *.mp4
+/housing-review.sqlite3*
+/housing-review-demo-v2.sqlite3*
+/tmp/
+/patch_integration.py

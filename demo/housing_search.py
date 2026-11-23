@@ -12,6 +12,7 @@ from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urlparse
+from evidence_contract import valid_evidence
 
 DATA_PATH = Path(__file__).resolve().parent / "data" / "rag" / "housing_evidence.json"
 STOPWORDS = {
@@ -46,7 +47,7 @@ def _https(value):
 class HousingSearch:
     def __init__(self, dataset):
         self.dataset = copy.deepcopy(dataset)
-        if self.dataset.get("schema_version") != "1.0":
+        if self.dataset.get("schema_version") != "2.0":
             raise ValueError("지원하지 않는 검색 자료 형식입니다.")
         self.chunks = self.dataset.get("chunks", [])
         documents = {item["document_id"]: item for item in self.dataset["documents"]}
@@ -54,21 +55,7 @@ class HousingSearch:
         seen = set()
         for item in self.chunks:
             doc = documents.get(item.get("document_id"))
-            page = item.get("pdf_page")
-            if (
-                not doc or item.get("chunk_id") in seen
-                or item.get("rag_eligible") is not True
-                or type(page) is not int or page < 1
-                or (doc.get("pdf_pages_verified") is not None
-                    and page > doc["pdf_pages_verified"])
-                or item.get("citation") != f'[{item["document_id"]}, PDF {page}쪽]'
-                or item.get("candidate") != doc["candidate"]
-                or not item.get("text") or not item.get("evidence_text")
-                or item.get("stored_pdf_url") != doc["stored_pdf_url"]
-                or any(not _https(item.get(key)) for key in (
-                    "stored_pdf_url", "official_pdf_download_url", "source_site_url"
-                ))
-            ):
+            if item.get("chunk_id") in seen or not valid_evidence(item,doc):
                 raise ValueError("근거의 ID·쪽수·출처 정보가 일치하지 않습니다.")
             seen.add(item["chunk_id"])
         if any(item.get("rag_eligible") is not False for item in self.pending):
@@ -76,7 +63,7 @@ class HousingSearch:
         self.documents = documents
         self.names = sorted({item["candidate"] for item in documents.values()})
         self.term_counts = [
-            tokens(item["summary"] + " " + item["evidence_text"] + " " + item["text"])
+            tokens(item.get("topic", "") + " " + item["summary"] + " " + item["evidence_text"] + " " + item["text"])
             for item in self.chunks
         ]
         self.lengths = [sum(counts.values()) for counts in self.term_counts]
@@ -105,7 +92,7 @@ class HousingSearch:
             "comparison_coverage_complete": self.dataset["comparison_coverage_complete"],
         }
 
-    def search(self, query, candidate="", limit=10):
+    def search(self, query, candidate="", limit=10, include_withdrawn=False):
         query = query.strip()
         candidate = candidate.strip()
         if not 2 <= len(query) <= 500:
@@ -116,6 +103,9 @@ class HousingSearch:
             raise ValueError("등록된 후보 이름을 선택해 주세요.")
         named = [name for name in self.names if name in query]
         selected_names = {candidate} if candidate else set(named or self.names)
+        withdrawn = {d['candidate'] for d in self.documents.values() if d.get('candidate_withdrawn')}
+        if not include_withdrawn:
+            selected_names -= withdrawn
         broad = (
             not candidate and not named
             and any(word in query for word in ("후보", "비교", "차이"))
@@ -183,7 +173,8 @@ class HousingSearch:
                 "pending_evidence": pending,
                 "all_requested_candidates_returned": selected_names <= returned_names,
             },
-            "scope": "제출 공약의 내용 검색. 공약 이행·실현 가능성 검증이나 기사 생성은 포함하지 않음.",
+            "scope": "실제 공약 일부와 교육용 가상 공약의 BM25 검색. 공약 이행·실현 가능성 검증이나 기사 생성은 포함하지 않음.",
+            "excluded_withdrawn_candidates": sorted(withdrawn) if not include_withdrawn else [],
         }
 
 

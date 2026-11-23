@@ -94,7 +94,7 @@ h1,h2,h3,#rate,#map-summary,.district-tile {font-weight:850}
     <div class="topline-intro">
       <div class="topline-copy">
         <p class="tag">교육용 시뮬레이션 · 가상 개표</p>
-        <p>서울 25개 자치구의 공식 개표 단위를 가상 순서로 재생합니다. 마지막 단계는 공식 최종 집계와 일치합니다.</p>
+        <p>서울 25개 자치구의 후보별 가상 개표를 재생합니다. 오세훈 공약 일부는 기존 수집 자료이며, 나머지 공약과 모든 개표 수치는 교육용 설정입니다.</p>
       </div>
       <h1>2026 서울시장 개표 데스크</h1>
     </div>
@@ -133,7 +133,7 @@ h1,h2,h3,#rate,#map-summary,.district-tile {font-weight:850}
   <section aria-label="후보별 누적 득표">
     <h2>후보별 누적 득표</h2>
     <table><thead><tr><th scope="col">후보</th><th scope="col">정당</th><th scope="col">누적 득표수</th><th scope="col">득표율</th></tr></thead><tbody id="results"></tbody></table>
-    <p><a href="https://www.data.go.kr/data/15162288/fileData.do">선관위 공식 개표 데이터</a> · <a href="https://www.hankyung.com/article/2026060599297">최종 수치 교차 확인</a></p>
+    <p>개표 근거 DEMO-VOTES-01 · 유효표 100만 표 + 무효표 1만 표 = 총투표 101만 표. 실제 선거 결과가 아닙니다.</p>
   </section>
     </div>
     <section class="editor" aria-labelledby="editor-title">
@@ -146,7 +146,7 @@ h1,h2,h3,#rate,#map-summary,.district-tile {font-weight:850}
         <h3 id="housing-draft-title" hidden></h3>
         <ol id="housing-draft-sentences"></ol>
         <p id="housing-draft-status" class="check" role="status">초안을 열면 출처를 불러옵니다.</p>
-        <p class="muted">기사 검증과 승인·반려 이력은 서버 연동 대기 중입니다.</p>
+        <p><a href="/housing-review">주거 공약 기사 검증과 승인·반려 이력</a></p>
       </details>
       <h3>득표 예시 기사 시연</h3>
       <p class="muted">현재 개표 화면으로 예시 기사를 만들어 검수합니다. 결정은 이 탭에만 표시됩니다.</p>
@@ -183,7 +183,7 @@ h1,h2,h3,#rate,#map-summary,.district-tile {font-weight:850}
 const get = id => document.getElementById(id);
 const set = (id, value) => { get(id).textContent = value; };
 const housingEditor = get('housing-editor');
-housingEditor.hidden = !['http:', 'https:'].includes(location.protocol);
+housingEditor.hidden = false;
 if (!housingEditor.hidden) {
   housingEditor.addEventListener('toggle', loadHousingDraft);
 }
@@ -191,7 +191,7 @@ async function loadHousingDraft() {
   if (!housingEditor.open) return;
   set('housing-draft-status', '기사와 출처를 불러오고 있습니다.');
   try {
-    const response = await fetch('/api/housing/draft');
+    const response = location.protocol === 'file:' ? {ok: true, json: async () => offlineHousingDraft} : await fetch('/api/housing/draft');
     if (!response.ok) throw new Error('기사 초안을 열 수 없습니다.');
     const draft = await response.json();
     const rows = draft.sentences.map(({text, citations}) => {
@@ -397,7 +397,6 @@ const history = [
   ['2018 지방선거', '박원순', 52.79, '김문수', 23.34, 25, 0, '#0366a3', '#ad3d31'],
   ['2021 보궐선거', '오세훈', 57.50, '박영선', 39.18, 25, 0, '#ad3d31', '#0366a3'],
   ['2022 지방선거', '오세훈', 59.05, '송영길', 39.23, 25, 0, '#ad3d31', '#0366a3'],
-  ["2026 지방선거","오세훈",49.22,"정원오",48.07,10,15,"#ad3d31","#0366a3"]
 ];
 for (const [label, winner, winnerShare, runner, runnerShare, winnerDistricts, runnerDistricts, winColor, runnerColor] of history) {
   const card = document.createElement('article');
