@@ -163,7 +163,7 @@ class HousingAPIUnitTest(unittest.TestCase):
 
     def test_routes_page_and_existing_handlers(self):
         from app import housing_search_page, housing_search_status, health, final_result
-        paths = {route.path for route in app.routes}
+        paths = {getattr(route, "path", None) for route in app.routes}
         self.assertTrue({"/housing-search", "/api/housing/status",
                          "/api/housing/search", "/ws/replay"} <= paths)
         self.assertTrue(Path(housing_search_page().path).is_file())
