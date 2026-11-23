@@ -287,20 +287,11 @@ main의 [방송사 서버](demo/app.py), [송신 서버](demo/election_source.py
 
 ## 7. 시스템 아키텍처
 
-```mermaid
-flowchart TD
-    RAW["공식 개표 원본 CSV"] --> PREP["정제·모의 집계 생성"]
-    PREP --> SNAP["demo_snapshots.jsonl"]
-    SNAP --> SEND["선관위 역할 서버 :8001"]
-    SEND -->|WebSocket /ws/feed| RECV["방송사 역할 서버 :8000"]
-    RECV -->|WebSocket /ws/replay| WEB["브라우저 개표 데스크"]
-    PDF["공약 PDF·출처 목록"] --> CORPUS["검수된 housing_evidence.json"]
-    CORPUS --> SEARCH["BM25·한글 검색"]
-    SEARCH --> RECV
-    DRAFT["저장 기사 Markdown"] --> RECV
-    RECV -->|HTTP 검색·기사 조회| CHECK["브라우저 근거·기사 검토"]
-    CHECK -.-> REVIEW["서버 검증·SQLite 이력: PR #6"]
-```
+![전체 시스템 아키텍처 — 줄바꿈과 여백을 확보한 구성도](docs/images/system-architecture.svg)
+
+[아키텍처 원본 크게 보기](docs/images/system-architecture.svg)
+
+긴 파일명과 설명을 줄바꿈한 SVG 구성도입니다. BM25 검색은 방송사 프로세스 내부 기능이며 별도 서버가 아닙니다. 실선은 main의 흐름, 점선은 문서 기준 시점 별도 PR의 연결 대상입니다.
 
 - 두 역할 서버는 한 PC의 별도 프로세스로 실행할 수 있습니다. 방송사 서버가 브라우저와 송신 서버 사이를 중계합니다.
 - 브라우저 연결마다 모의 재생을 새로 시작합니다. 실제 다수 사용자에게 동일 실시간 집계를 배포하는 운영 구조와 다릅니다.
