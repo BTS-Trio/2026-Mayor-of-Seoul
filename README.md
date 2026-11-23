@@ -4,7 +4,7 @@ BTS-Trio의 교육용 데이터 저널리즘 프로젝트입니다. 후보 6명 
 
 > 현재 전환: [후보·공약·PDF·CSV 통합 안내](demo/docs/dummy-data-integration.md). 오세훈 공약 일부는 실제 수집 자료이고 나머지 공약과 모든 현재 개표 수치는 가상입니다. 이 변경 브랜치에는 PR #6의 검증·승인 코드를 포함했습니다. main 반영 여부는 PR 병합 상태와 구분하세요.
 
-> 이전 문서 기준: 2026-11-23 main의 코드·데이터 및 PR #6 상태 확인 시점. 현재 개표 수치·시각·순서는 모두 가상입니다. 실제 중앙선거관리위원회나 방송사의 운영 서버에 연결하는 서비스가 아닙니다.
+> 이전 문서 기준: 2026-11-23 전환 전 main의 코드·데이터 및 PR #6 상태 확인 시점. 현재 개표 수치·시각·순서는 모두 가상입니다. 실제 중앙선거관리위원회나 방송사의 운영 서버에 연결하는 서비스가 아닙니다.
 
 ## 목차
 
@@ -81,7 +81,7 @@ python -m venv .venv
 | 공약 근거 검색·PDF 출처 연결 | 이 브랜치에 코드·검색 자료 있음 |
 | 저장 기사 초안과 문장별 출처 조회 | main의 /api/housing/draft에 구현 |
 | 오프라인 예시 기사 승인·오류 차단·반려 | 독립 HTML 시연 기능 |
-| 주거 공약 기사 서버 검증·SQLite 승인·반려 이력 | [PR #6](https://github.com/BTS-Trio/2026-Mayor-of-Seoul/pull/6)에서 검토 중, 확인 시점 main 미병합 |
+| 주거 공약 기사 서버 검증·SQLite 승인·반려 이력 | 이 변경 브랜치에 PR #6 구현 포함; main 병합 전 |
 | AI 기사 자동 생성 API·실제 외부 AI 판정 | main에 구현되지 않음. PR #6의 AI 판정도 시연용 값 |
 
 검색은 BM25와 한글 2글자 검색을 사용합니다. 임베딩이나 외부 AI API를 호출하는 구현으로 설명하지 않습니다.
@@ -211,7 +211,7 @@ UI-03의 기사·출처 기능과 UI-04에서 설명한 예시 검토 기능은 
 
 경로·대상: `UI-05 · PR #6 연결 대상` · 상태: **PR #6 / main 미병합·문서 기준 시점**
 
-FR-09의 설계 흐름은 **02-4 근거 선택·생성 요청 → 03-1 새 초안 표시 → 03-2 문장별 근거 연결 → 03-3 사람 검수**입니다. 생성 버튼·생성 API·DB 저장은 미구현이며, 현재 GET /api/housing/draft는 저장 기사 조회입니다.
+FR-09의 설계 흐름은 **02-4 근거 선택·생성 요청 → 03-1 새 초안 표시 → 03-2 문장별 근거 연결 → 03-3 사람 검수**입니다. 생성 버튼·생성 API·DB 저장은 미구현이며, 현재 GET /api/housing/draft는 저장 기사 6문장 조회입니다.
 
 ## 5. ERD
 
@@ -234,14 +234,14 @@ erDiagram
 
 | DB num | 논리 테이블 | 키·주요 필드 설계 | 현재 대응 파일·상태 |
 | --- | --- | --- | --- |
-| DB-01 | CANDIDATE | candidate_id PK, name, party | demo/data/seoul_final_candidates.csv 및 스냅샷 candidates |
-| DB-02 | SNAPSHOT | event_id PK, sequence, simulated_at, counted_ballots | demo/data/demo_snapshots.jsonl의 각 행 |
-| DB-03 | SNAPSHOT_VOTE | row_id PK, event_id FK, candidate_id FK, votes, vote_share_pct | 스냅샷 각 행의 candidates 배열. 별도 테이블 아님 |
+| DB-01 | CANDIDATE | candidate_id PK, name, party | demo/data/tables/CANDIDATE.csv(6명) 및 스냅샷 candidates(출마 5명) |
+| DB-02 | SNAPSHOT | event_id PK, sequence, simulated_at, counted_ballots | demo/data/tables/SNAPSHOT.csv 및 demo_snapshots.jsonl |
+| DB-03 | SNAPSHOT_VOTE | row_id PK, event_id FK, candidate_id FK, votes, vote_share_pct | demo/data/tables/SNAPSHOT_VOTE.csv 및 스냅샷 candidates 배열 |
 | DB-04 | SOURCE | source_id PK, 기관·URL·자료 유형·날짜 | demo/data/sources.csv, housing_evidence.json의 documents·상태 출처 |
 | DB-05 | EVIDENCE | chunk_id PK, source_id FK, document_id, pdf_page, text | demo/data/rag/housing_evidence.json의 chunks |
 | DB-06 | ARTICLE | article_id PK, snapshot_id 선택 FK, 제목·본문·상태 | demo/docs/housing-article-draft-20261123.md. 공약 기사에는 개표 스냅샷 연결이 필수 아님 |
-| DB-07 | ARTICLE_EVIDENCE | 연결 ID PK, article_id FK, 문장 번호, chunk_id 또는 row_id FK | 초안의 인용 표기와 검수 문서. 구조화 테이블은 설계 |
-| DB-08 | FACT_CHECK | 검사 ID PK, article_id FK, 결과·사유·시각 | 서버 구현은 PR #6과 별도 대조 필요 |
+| DB-07 | ARTICLE_EVIDENCE | 연결 ID PK, article_id FK, 문장 번호, chunk_id 또는 row_id FK | demo/data/tables/ARTICLE_EVIDENCE.csv 및 실제 SQLite 테이블 |
+| DB-08 | FACT_CHECK | 검사 ID PK, article_id FK, 결과·사유·시각 | demo/data/tables/FACT_CHECK.csv(기본 0행); 실행 시 SQLite 기록 |
 | DB-09 | REVIEW | 검토 ID PK, article_id FK, 승인·반려·사유·처리자·시각 | SQLite 이력 연결은 PR #6 기반 코드 포함(이 브랜치). 실제 스키마는 병합 후 확인 |
 
 설계 제약: SNAPSHOT_VOTE의 (event_id, candidate_id)는 유일하고 누적 득표는 0 이상입니다. 유효표가 0이면 득표율은 NULL입니다. ARTICLE_EVIDENCE는 문서 근거 또는 개표 수치 근거를 구분해 연결합니다. 파일상의 document_id와 후보 이름을 관계형 키로 옮기는 변환 규칙은 DB 구현 시 확정해야 합니다.
@@ -285,7 +285,7 @@ main의 [방송사 서버](demo/app.py), [송신 서버](demo/election_source.py
 | limit 정수 변환 실패 | HTTP 422, FastAPI 요청 검증 오류 |
 | 검색 자료 누락·형식 오류 또는 초안 형식 오류 | HTTP 503, detail 안내 |
 
-기사 자동 생성·승인·반려 API는 이 브랜치 구현 목록에 포함하지 않습니다. PR #6의 경로·요청·저장 규격은 병합 이후 확정된 코드로 명세를 보완합니다.
+기사 자동 생성·승인·반려 API는 이 브랜치 구현 목록에 포함하지 않습니다. 이 브랜치에 포함된 검증·승인 API와 최신 스키마는 demo/docs/data-and-api.md 및 schema.sql을 참고하세요.
 
 ## 7. 시스템 아키텍처
 
@@ -337,4 +337,4 @@ main의 [방송사 서버](demo/app.py), [송신 서버](demo/election_source.py
 - [통합 PR #3](https://github.com/BTS-Trio/2026-Mayor-of-Seoul/pull/3)
 - [서버 검증·승인 이력 연결 PR #6](https://github.com/BTS-Trio/2026-Mayor-of-Seoul/pull/6)
 
-기존 demo/README.md의 일부 설명(검색 근거 16개·정원오 쪽수 대기, 기사 관련 후속 작업 표기)은 최신 코드·검색 자료와 차이가 있습니다. 현재 검색 자료는 8개·보류 0개이며, 저장 기사 조회 API가 있습니다. 최신 상태는 이 README와 해당 코드·JSON을 함께 확인합니다.
+최신 후보·근거·PDF·CSV 연결과 검증 결과는 [통합 안내](demo/docs/dummy-data-integration.md) 및 [새 Windows 테스트](demo/docs/test-results.md)를 기준으로 합니다.
