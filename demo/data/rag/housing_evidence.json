@@ -13,7 +13,7 @@
     "ready_candidates": 6
   },
   "comparison_coverage_complete": true,
-  "processing_status": "정원오 PDF 7쪽 본문·쪽수 보완 완료. 동일 질문 재검색·기사 초안·원문 대조 종합 검수는 후속 단계.",
+  "processing_status": "정원오 PDF 7쪽 보완·동일 질문 검색(6명, 누락 0)·기사 초안 작성·인용 원문 및 사퇴 공식 원문 대조 완료. 최종 편집자 승인 전.",
   "usage": {
     "load": "Python 3.10 이상: UTF-8 JSON의 chunks 배열을 검색 대상으로 사용.",
     "retrieve": "text·summary를 검색하고 document_id·pdf_page·citation·출처 링크를 검색 결과에 유지.",
@@ -94,7 +94,10 @@
       "document_registry_url": "https://docs.google.com/spreadsheets/d/1zJn7d3s1yMoN_fYs3avMUxzzJWDA2Nwv0tuzPW4nl2o/edit#gid=202604&range=A10",
       "file_size_bytes": 96664,
       "pdf_pages_verified": 5,
-      "provenance": "사용자가 선관위 주소에서 내려받아 Drive에 보존한 PDF의 추출 텍스트를 사용."
+      "provenance": "사용자가 선관위 주소에서 내려받아 Drive에 보존한 PDF의 추출 텍스트를 사용.",
+      "candidate_status_source_ids": [
+        "NEC-SEOUL26-WD-001"
+      ]
     },
     {
       "document_id": "SEOUL26-PB-06",
@@ -108,7 +111,10 @@
       "document_registry_url": "https://docs.google.com/spreadsheets/d/1zJn7d3s1yMoN_fYs3avMUxzzJWDA2Nwv0tuzPW4nl2o/edit#gid=202604&range=A11",
       "file_size_bytes": 1042721,
       "pdf_pages_verified": 2,
-      "provenance": "사용자가 선관위 주소에서 내려받아 Drive에 보존한 PDF의 추출 텍스트를 사용."
+      "provenance": "사용자가 선관위 주소에서 내려받아 Drive에 보존한 PDF의 추출 텍스트를 사용.",
+      "candidate_status_source_ids": [
+        "NEC-SEOUL26-WD-001"
+      ]
     },
     {
       "document_id": "SEOUL26-P5-07",
@@ -380,7 +386,10 @@
       "rag_eligible": true,
       "claim_type": "candidate_pledge",
       "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
-      "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음."
+      "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
+      "candidate_status_source_ids": [
+        "NEC-SEOUL26-WD-001"
+      ]
     },
     {
       "chunk_id": "SEOUL26-P5-06:p004:housing",
@@ -404,7 +413,10 @@
       "rag_eligible": true,
       "claim_type": "candidate_pledge",
       "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
-      "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음."
+      "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
+      "candidate_status_source_ids": [
+        "NEC-SEOUL26-WD-001"
+      ]
     },
     {
       "chunk_id": "SEOUL26-PB-06:p001:housing",
@@ -428,7 +440,10 @@
       "rag_eligible": true,
       "claim_type": "candidate_pledge",
       "quotation_note": "공백·줄바꿈을 정리한 발췌이며 / 는 비연속 구절의 구분자.",
-      "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음."
+      "verification_scope": "제출 공약 내용에 대한 근거 연결. 이행 여부·실현 가능성·공약 속 실적 주장은 검증하지 않음.",
+      "candidate_status_source_ids": [
+        "NEC-SEOUL26-WD-001"
+      ]
     },
     {
       "chunk_id": "SEOUL26-P5-07:p002:housing",
@@ -552,5 +567,23 @@
     }
   ],
   "pending_chunks": [],
-  "updated_date_kst": "2026-11-23"
+  "updated_date_kst": "2026-11-23",
+  "candidate_status_sources": [
+    {
+      "source_id": "NEC-SEOUL26-WD-001",
+      "title": "서울특별시장선거 기호 6번 이강산 후보자 사퇴",
+      "provider": "서울특별시선거관리위원회",
+      "source_url": "https://su.nec.go.kr/su/bbs/B0000268/view.do?nttId=290418&menuNo=200008&sdate=&edate=&searchCnd=1&searchWrd=%EC%82%AC%ED%87%B4&category1=su&category2=&deleteCd=0&pageIndex=1",
+      "published_at_kst": "2026-06-02T13:42:00+09:00",
+      "verified_date_kst": "2026-11-23",
+      "candidate": "이강산",
+      "party": "자유통일당",
+      "ballot_number": 6,
+      "withdrawn_date": "2026-06-02",
+      "verification_method": "official_post_and_attached_hwp_viewer",
+      "source_page": 1,
+      "page_number_basis": "첨부 HWP 총 1면; PDF 쪽수가 아님",
+      "scope": "사퇴 사실 확인. 별도 선거통계시스템 사퇴 현황표 확보는 아님."
+    }
+  ]
 }
