@@ -2,6 +2,7 @@
 import asyncio
 import json
 import os
+import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -51,6 +52,42 @@ def search_housing_evidence(q: str = "", candidate: str = "", limit: int = 10):
         return index.search(q, candidate=candidate, limit=limit)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
+
+
+@app.get("/api/housing/draft")
+def housing_draft():
+    """Load the team's existing article and link its cited pages."""
+    sources = {
+        (item["document_id"], item["pdf_page"]): item["stored_pdf_url"]
+        for item in housing_index().chunks
+    }
+    try:
+        markdown = (ROOT / "docs" / "housing-article-draft-20261123.md").read_text(encoding="utf-8")
+        article, separator, notes = markdown.partition("\n---\n")
+        heading, _, body = article.partition("\n")
+        if not separator or not heading.startswith("# ") or not body.strip():
+            raise ValueError("Invalid article draft format")
+    except (OSError, ValueError) as error:
+        raise HTTPException(status_code=503, detail="기사 초안 문서를 확인해 주세요.") from error
+
+    withdrawal_source = re.search(r"사퇴 표시 출처: \[[^\]]+\]\((https://[^\s)]+)\)", notes)
+    sentences = []
+    for line in filter(None, map(str.strip, body.splitlines())):
+        text, _, _ = line.partition(" [")
+        citations = [
+            {"label": f"{document_id} · PDF {page}쪽",
+             "url": sources.get((document_id, int(page)))}
+            for document_id, page in re.findall(r"\[([A-Z0-9-]+), PDF (\d+)쪽\]", line)
+        ]
+        withdrawal = re.search(r"\[사퇴 표시 근거: ([A-Z0-9-]+)\]", line)
+        if withdrawal:
+            citations.append({
+                "label": f"사퇴 근거 · {withdrawal[1]}",
+                "url": withdrawal_source[1] if withdrawal_source else None,
+            })
+        sentences.append({"text": text, "citations": citations})
+
+    return {"title": heading[2:], "sentences": sentences}
 
 
 @app.get("/embic.webp")
