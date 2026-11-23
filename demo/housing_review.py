@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from typing import Literal
 from article_validation import validate
 from table_data import initialize
+from article_generation import generate_article, GenerationError
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data" / "rag"
@@ -31,6 +32,12 @@ class Decision(BaseModel):
     action: Literal["approve", "reject"]
     reviewer: str = Field(min_length=1, max_length=80)
     reason: str = Field(default="", max_length=1000)
+
+
+class GenerationRequest(BaseModel):
+    question: str = Field(min_length=2,max_length=500)
+    candidate: str = Field(default='',max_length=80)
+    include_withdrawn: bool = False
 
 
 @contextmanager
@@ -65,7 +72,7 @@ def audit(connection, draft_id, event, reviewer, reason, payload, result):
     if event in ('approve','reject','blocked'):
         connection.execute('INSERT INTO REVIEW VALUES (?,?,?,?,?,?)',
             (str(uuid4()), draft_id, event, reviewer, reason, now))
-    details = {**result, "scenario": payload["scenario"], "evidence": [
+    details = {**result, "scenario": payload["scenario"], "question":payload.get('question'), "generation_mode":payload.get('generation_mode'), "evidence": [
         {"sentence_id": row["sentence_id"], "chunk_id": row["chunk_id"]} for row in payload["sentences"]
     ]}
     connection.execute(
@@ -86,12 +93,17 @@ def create_draft(request: Scenario):
     if request.scenario == "missing_source":
         sentences[0].update(chunk_id=None, document_id=None, stored_pdf_url=None, citation=None)
     payload = {"scenario": request.scenario, "sentences": sentences}
+    return save_draft(payload)
+
+
+def save_draft(payload):
+    sentences=payload['sentences']
     draft_id = str(uuid4())
     result = validate(payload)
     with storage() as db:
         db.execute("INSERT INTO drafts VALUES (?, ?, 'pending')", (draft_id, json.dumps(payload)))
         db.execute('INSERT INTO ARTICLE VALUES (?,?,?,?,?,?)',
-            (draft_id, None, '후보별 주거 공약 비교 · 검토 초안', '\n'.join(r['sentence'] for r in sentences),
+            (draft_id, None, payload.get('title','후보별 주거 공약 비교 · 검토 초안'), '\n'.join(r['sentence'] for r in sentences),
              'pending', 'mixed_educational'))
         for i,row in enumerate(sentences,1):
             if row.get('chunk_id') in CHUNKS:
@@ -100,8 +112,43 @@ def create_draft(request: Scenario):
             if row.get('candidate_status_source_id') in STATUS_SOURCES:
                 db.execute('INSERT INTO ARTICLE_EVIDENCE VALUES (?,?,?,?,?,?,?)',
                     (str(uuid4()),draft_id,i,row['sentence_id'],row['sentence'],row['candidate_status_source_id']+':status',None))
-        audit(db, draft_id, "validated", "", "", payload, result)
-    return {"id": draft_id, **payload, "validation": result}
+        audit(db, draft_id, "generated" if payload.get('generation_mode') else "validated", "", "", payload, result)
+    return {"id": draft_id, **payload, "status":"pending", "validation": result,
+            "review_url":"/housing-review?draft_id="+draft_id}
+
+
+@router.post('/api/housing/generate',status_code=201)
+def generate_from_question(request: GenerationRequest):
+    try:
+        payload=generate_article(request.question,request.candidate,request.include_withdrawn)
+    except GenerationError as error:
+        raise HTTPException(422,detail={'code':error.code,'message':str(error)}) from error
+    except ValueError as error:
+        raise HTTPException(400,detail=str(error)) from error
+    return save_draft(payload)
+
+
+@router.get('/api/housing-review/drafts')
+def saved_drafts():
+    with storage() as db:
+        rows=db.execute('SELECT id,payload,status FROM drafts ORDER BY rowid DESC LIMIT 30').fetchall()
+    result=[]
+    for row in rows:
+        payload=json.loads(row['payload'])
+        result.append({'id':row['id'],'status':row['status'],'question':payload.get('question'),
+            'title':payload.get('title','저장 기사 검증 사례'),'created_at':payload.get('created_at'),
+            'generation_mode':payload.get('generation_mode','stored_fixture')})
+    return result
+
+
+@router.get('/api/housing-review/drafts/{draft_id}')
+def get_saved_draft(draft_id: str):
+    with storage() as db:
+        row=db.execute('SELECT payload,status FROM drafts WHERE id=?',(draft_id,)).fetchone()
+    if row is None:
+        raise HTTPException(404,'저장된 초안을 찾을 수 없습니다.')
+    payload=json.loads(row['payload'])
+    return {'id':draft_id,**payload,'status':row['status'],'validation':validate(payload)}
 
 
 @router.post("/api/housing-review/drafts/{draft_id}/decision")

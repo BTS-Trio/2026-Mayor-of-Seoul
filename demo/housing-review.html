@@ -17,8 +17,11 @@
 <main>
   <a href="/">개표 데스크</a>
   <h1>주거 공약 기사 검증</h1>
-  <p>제공된 초안과 문장별 근거를 대조합니다. AI 판정은 시연용 테스트 값입니다.</p>
+  <p id="review-notice">제공된 초안과 문장별 근거를 대조합니다. 검증 사례의 AI 판정은 시연용 테스트 값입니다.</p>
   <section>
+    <h2 id="review-title">저장 기사 검증 사례</h2>
+    <p id="review-question"></p>
+    <div id="fixture-controls">
     <label for="scenario">검증 사례</label>
     <select id="scenario">
       <option value="normal">정상</option>
@@ -26,6 +29,7 @@
       <option value="ai_mismatch">AI 판정 불일치</option>
     </select>
     <button id="run">검증 실행</button>
+    </div>
     <p id="validation" role="status"></p>
     <ol id="sentences"></ol>
     <label for="reviewer">검토자 이름</label>
@@ -47,7 +51,7 @@
 <script>
 const get = id => document.getElementById(id);
 const api = '/api/housing-review';
-const labels = {validated: '검증', approve: '승인', reject: '반려', blocked: '승인 차단'};
+const labels = {generated: '새 초안 생성', validated: '검증', approve: '승인', reject: '반려', blocked: '승인 차단', pending:'검토 대기'};
 let draft;
 let busy = false;
 async function request(path, body) {
@@ -55,7 +59,7 @@ async function request(path, body) {
     method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
   } : {cache: 'no-store'});
   const data = await response.json();
-  if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : '서버가 요청을 거절했습니다.');
+  if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : data.detail?.message || '서버가 요청을 거절했습니다.');
   return data;
 }
 function add(list, text) {
@@ -66,8 +70,8 @@ function add(list, text) {
 }
 function buttons() {
   get('run').disabled = busy;
-  get('approve').disabled = busy || !draft?.validation.can_approve;
-  get('reject').disabled = busy || !draft;
+  get('approve').disabled = busy || !draft?.validation.can_approve || draft.status !== 'pending';
+  get('reject').disabled = busy || !draft || draft.status !== 'pending';
 }
 async function refresh() {
   const history = get('history');
@@ -139,6 +143,28 @@ get('approve').onclick = () => decide('approve');
 get('reject').onclick = () => decide('reject');
 get('refresh').onclick = refresh;
 refresh();
+const savedId=new URLSearchParams(location.search).get('draft_id');
+if (savedId) {
+  get('fixture-controls').hidden=true;
+  busy=true; buttons();
+  request('/drafts/'+encodeURIComponent(savedId)).then(saved => {
+    draft=saved;
+    get('review-title').textContent=saved.title || '저장된 초안';
+    get('review-question').textContent=saved.question ? '질문: '+saved.question : '';
+    get('review-notice').textContent=saved.generation_notice ? saved.label+' · '+saved.generation_notice+' '+saved.review_notice : '저장된 검증 사례입니다.';
+    get('validation').dataset.blocked=String(!saved.validation.can_approve);
+    get('validation').textContent=saved.validation.can_approve ? '원문·후보·인용 일치 검사 통과 · 문맥과 충분성을 검토한 뒤 승인하세요.' :
+      '승인 차단 · '+saved.validation.issues.map(x=>x.message).join(' / ');
+    get('sentences').replaceChildren();
+    for (const row of saved.sentences) {
+      const item=add(get('sentences'),row.sentence);
+      if (row.stored_pdf_url) {
+        const anchor=document.createElement('a'); anchor.href=row.stored_pdf_url; anchor.textContent=' 원문 PDF'; item.append(anchor);
+      }
+    }
+    get('message').textContent='저장 상태: '+(labels[saved.status] || saved.status);
+  }).catch(error => {get('message').textContent=error.message;}).finally(()=>{busy=false;buttons();});
+}
 </script>
 </body>
 </html>

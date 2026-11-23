@@ -6,6 +6,9 @@ from evidence_contract import valid_evidence
 DATA=Path(__file__).resolve().parent/'data'
 
 def validate(payload):
+    if payload.get('generation_mode')=='retrieval_extract':
+        from article_generation import validate_generated
+        return validate_generated(payload)
     expected=json.loads((DATA/'rag/housing_article.json').read_text(encoding='utf-8'))
     evidence=json.loads((DATA/'rag/housing_evidence.json').read_text(encoding='utf-8'))
     chunks={c['chunk_id']:c for c in evidence['chunks']}

@@ -12,6 +12,7 @@
     label{display:block;font-weight:700;margin:12px 0 6px}
     input,select,button{box-sizing:border-box;font:inherit;padding:11px;border-radius:6px}
     input,select{border:1px solid #9cabbc;width:100%;background:white}
+    input[type="checkbox"]{width:auto}
     button{background:#16466d;color:white;border:0;cursor:pointer;align-self:end}
     button:disabled{background:#728297;cursor:wait}
     .controls{display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:14px}
@@ -45,13 +46,29 @@
         </div>
         <label><input type="checkbox" id="include-withdrawn"> 사퇴 후보 포함</label>
           <button id="submit" type="submit" disabled>근거 검색</button>
+          <button id="generate" type="button" disabled>질문으로 기사 초안 만들기</button>
       </div>
     </form>
     <p id="dataset-status" class="muted">검색 자료를 확인하고 있습니다.</p>
+    <p class="muted">기사 초안은 질문에 맞는 원문을 검색·발췌해 새로 작성합니다. 외부 AI의 문장 재작성은 사용하지 않습니다. 현재 범위는 주거 공약이며 원문에 없는 내용은 만들지 않습니다.</p>
     <div id="pending" class="pending" role="status" hidden></div>
   </section>
   <p id="search-status" role="status" aria-live="polite"></p>
   <div id="results"></div>
+  <p id="generation-status" role="status" aria-live="polite"></p>
+  <section id="generated-article" hidden>
+    <h2 id="generated-title"></h2>
+    <p id="generated-question"></p>
+    <p id="generated-notice" class="muted"></p>
+    <ol id="generated-sentences"></ol>
+    <p id="generated-validation"></p>
+    <a id="review-generated">이 초안 검토·승인하기</a>
+  </section>
+  <section>
+    <h2>저장된 초안</h2>
+    <button id="refresh-drafts" type="button">저장 목록 새로고침</button>
+    <ul id="saved-drafts"></ul>
+  </section>
   <script>
     const byId = id => document.getElementById(id);
     let latestRequest = 0;
@@ -73,7 +90,7 @@
     async function getJSON(url) {
       const response = await fetch(url, {headers: {'Accept': 'application/json'}});
       const data = await response.json();
-      if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : '검색 요청을 확인해 주세요.');
+      if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : data.detail?.message || '검색 요청을 확인해 주세요.');
       return data;
     }
     function renderResults(data) {
@@ -154,12 +171,55 @@
           byId('candidate').append(option);
         }
         byId('submit').disabled = false;
+        byId('generate').disabled = false;
         await search();
       } catch (error) {
         byId('dataset-status').textContent = '검색 자료를 불러오지 못했습니다. ' + error.message;
       }
     }
     initialize();
+    async function loadSavedDrafts() {
+      const target=byId('saved-drafts'); target.replaceChildren();
+      try {
+        const drafts=await getJSON('/api/housing-review/drafts');
+        for (const draft of drafts) {
+          const row=document.createElement('li');
+          const link=document.createElement('a');
+          link.textContent=(draft.created_at ? new Date(draft.created_at).toLocaleString('ko-KR')+' · ' : '')+(draft.question || draft.title)+' · '+draft.status;
+          link.href='/housing-review?draft_id='+encodeURIComponent(draft.id);
+          row.append(link); target.append(row);
+        }
+        if (!drafts.length) target.append(text('li','저장된 초안이 없습니다.'));
+      } catch (error) { target.append(text('li','목록을 불러오지 못했습니다. '+error.message)); }
+    }
+    byId('refresh-drafts').addEventListener('click',loadSavedDrafts);
+    byId('generate').addEventListener('click',async () => {
+      const button=byId('generate'); button.disabled=true;
+      byId('generated-article').hidden=true;
+      byId('generation-status').textContent='질문에 맞는 근거로 초안을 만들고 저장하고 있습니다.';
+      try {
+        const response=await fetch('/api/housing/generate',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({question:byId('question').value,candidate:byId('candidate').value,
+            include_withdrawn:byId('include-withdrawn').checked})});
+        const draft=await response.json();
+        if (!response.ok) throw new Error(draft.detail?.message || (typeof draft.detail==='string' ? draft.detail : '질문과 후보 선택을 확인해 주세요.'));
+        byId('generated-title').textContent=draft.title;
+        byId('generated-question').textContent='질문: '+draft.question;
+        byId('generated-notice').textContent=draft.generation_notice+' '+draft.review_notice;
+        byId('generated-sentences').replaceChildren(...draft.sentences.map(row => {
+          const item=text('li',row.sentence+' ');
+          item.append(sourceLink('원문 PDF',row.stored_pdf_url)); return item;
+        }));
+        byId('generated-validation').textContent=draft.validation.can_approve ?
+          '원문·후보·인용 일치 검사 통과 · 사람 검토 전' : draft.validation.issues.map(x=>x.message).join(' / ');
+        byId('review-generated').href=draft.review_url;
+        byId('generated-article').hidden=false;
+        byId('generation-status').textContent='새 초안을 DB에 저장했습니다. 새로고침 후에도 저장 목록에서 열 수 있습니다.';
+        await loadSavedDrafts();
+      } catch (error) { byId('generation-status').textContent=error.message; }
+      finally { button.disabled=false; }
+    });
+    loadSavedDrafts();
   </script>
 </body>
 </html>

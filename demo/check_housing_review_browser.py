@@ -6,6 +6,7 @@ import sqlite3
 import subprocess
 import threading
 import time
+from contextlib import closing
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.request import urlopen
@@ -101,7 +102,7 @@ with TemporaryDirectory(prefix="housing-review-browser-", ignore_cleanup_errors=
                 assert any(" · 반려 · " in row and "Missing source browser check" in row for row in before)
 
                 marker = js("window.previousPage = true; performance.timeOrigin")
-                with sqlite3.connect(db) as database:
+                with closing(sqlite3.connect(db)) as database:
                     tables = database.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
                 print("SQLite tables:", tables, flush=True)
                 command("Page.reload", ignoreCache=True)
@@ -111,6 +112,30 @@ with TemporaryDirectory(prefix="housing-review-browser-", ignore_cleanup_errors=
                 assert js("performance.getEntriesByType('navigation')[0].type") == "reload"
                 print(json.dumps({"browser": command("Browser.getVersion")["product"],
                                   "reload": True, "events": after}, ensure_ascii=True), flush=True)
+                # Exercise question-driven generation through the actual browser UI.
+                command('Page.navigate',url=f'http://127.0.0.1:{port}/housing-search')
+                until(lambda: js("document.querySelector('#generate')?.disabled === false"))
+                question='강도윤 청년 지원 예산은 얼마야?'
+                js("document.querySelector('#question').value="+json.dumps(question)+";document.querySelector('#generate').click()")
+                until(lambda: js("document.querySelector('#generated-article')?.hidden === false"))
+                assert js("document.querySelector('#generated-sentences').textContent.includes('864억')")
+                review_url=js("document.querySelector('#review-generated').getAttribute('href')")
+                assert '?draft_id=' in review_url
+                draft_id=review_url.split('draft_id=')[1]
+                command('Page.reload',ignoreCache=True)
+                until(lambda: js("[...document.querySelectorAll('#saved-drafts a')].some(a=>a.getAttribute('href')==="+json.dumps(review_url)+")"))
+                command('Page.navigate',url=f'http://127.0.0.1:{port}'+review_url)
+                until(lambda: js("document.querySelector('#fixture-controls')?.hidden && !document.querySelector('#approve').disabled"))
+                assert js("document.querySelector('#review-question').textContent.includes("+json.dumps(question)+")")
+                js("get('reviewer').value='Generated Browser QA';get('approve').click()")
+                until(lambda: js("get('message').textContent.includes('승인 완료')"))
+                command('Page.reload',ignoreCache=True)
+                until(lambda: js("document.querySelector('#message')?.textContent.includes('저장 상태: 승인')"))
+                assert js("get('approve').disabled && get('reject').disabled")
+                with closing(sqlite3.connect(db)) as database:
+                    assert database.execute('SELECT status FROM ARTICLE WHERE article_id=?',(draft_id,)).fetchone()[0]=='approve'
+                    assert database.execute('PRAGMA foreign_key_check').fetchall()==[]
+                print(json.dumps({'generated_article':draft_id,'generation_reload':True,'generation_approval':True}),flush=True)
         except Exception:
             log.flush()
             print((directory / "chrome.log").read_text(errors="replace")[-1500:], flush=True)

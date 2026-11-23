@@ -22,3 +22,7 @@
 승인 실패·중복 처리는 409, 반려 사유·검토자 누락은 422입니다. 개표 송신 중단·잘못된 모드는 election_feed_unavailable 오류로 전달합니다. 생성 AI API는 없고 저장 기사 조회입니다.
 
 SNAPSHOT_VOTE.vote_share_pct는 누적 유효표를 분모로 소수 둘째 자리 반올림합니다. 0표 단계는 NULL입니다. synthetic 모드·DEMO 후보 ID를 사용합니다. 사퇴 후보는 개표 행에 포함되지 않습니다. 자치구별 득표 합은 모든 단계에서 전체 후보별 득표와 일치해야 합니다.
+
+## 질문 기반 초안 생성
+
+POST /api/housing/generate와 GET /api/housing-review/drafts, GET /api/housing-review/drafts/{id}를 추가했습니다. 검색·발췌 방식이며 외부 AI는 사용하지 않습니다. [요청·저장·제한](article-generation.md)을 참고하세요.
