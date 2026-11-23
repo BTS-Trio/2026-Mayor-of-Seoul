@@ -54,8 +54,13 @@ candidate는 생략할 수 있고 limit는 1~30이다. 질문은 2~500자다.
 이 검색은 제출한 공약의 내용을 찾는 기능이고, 공약 이행·실적·실현
 가능성을 사실검증한 결과가 아니다.
 
-data/rag/housing_search_example.json은 2026-11-20의 보완 전 검색 기록이다.
-동일 질문 재검색 및 새 결과 저장은 다음 단계에서 진행한다.
+data/rag/housing_search_example.json은 2026-11-23 재검색 결과다.
+결과 10개에 후보 6명 모두 포함, 누락·보류 0개를 확인했다.
+
+docs/housing-article-draft-20261123.md에 인용이 붙은 기사 초안,
+docs/housing-article-review-20261123.md에 문장별 원문 대조 기록을 보존했다.
+기사 작성은 ChatGPT가 검색 결과를 바탕으로 수행했으며 자동 기사 생성 API는 구현하지 않았다.
+이강산 사퇴는 candidate_status_sources의 NEC-SEOUL26-WD-001 공식 원문과 연결했다.
 
 ## 확인 방법
 
