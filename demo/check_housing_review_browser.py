@@ -88,17 +88,17 @@ with TemporaryDirectory(prefix="housing-review-browser-", ignore_cleanup_errors=
                 until(lambda: js("get('validation').textContent && !get('run').disabled"))
                 assert js("!get('approve').disabled"), js("get('validation').textContent")
                 js("get('approve').click()")
-                until(lambda: js("get('message').textContent.includes('���� �Ϸ�')"))
+                until(lambda: js("get('message').textContent.includes('\\uc2b9\\uc778 \\uc644\\ub8cc')"))
 
                 js("get('scenario').value='missing_source'; get('run').click()")
                 until(lambda: js("get('validation').textContent && !get('run').disabled"))
                 assert js("get('approve').disabled && !get('reject').disabled")
-                js("get('reason').value='��ó ���� ������ �˼�'; get('reject').click()")
-                until(lambda: js("get('message').textContent.includes('�ݷ� �Ϸ�')"))
+                js("get('reason').value='Missing source browser check'; get('reject').click()")
+                until(lambda: js("get('message').textContent.includes('\\ubc18\\ub824 \\uc644\\ub8cc')"))
                 history = "[...document.querySelectorAll('#history li')].map(li=>li.textContent)"
                 before = until(lambda: (rows if len(rows := js(history)) == 4 else None))
-                assert any(" �� ���� �� " in row and "Browser QA" in row for row in before)
-                assert any(" �� �ݷ� �� " in row and "��ó ���� ������ �˼�" in row for row in before)
+                assert any(" · 승인 · " in row and "Browser QA" in row for row in before)
+                assert any(" · 반려 · " in row and "Missing source browser check" in row for row in before)
 
                 marker = js("window.previousPage = true; performance.timeOrigin")
                 with sqlite3.connect(db) as database:
