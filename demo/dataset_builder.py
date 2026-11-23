@@ -91,7 +91,7 @@ def generate():
             'registered_voters':2000000,'total_ballots':1010000,'counted_ballots':valid+invalid,
             'valid_ballots_counted':valid,'invalid_ballots_counted':invalid,
             'count_progress_pct':round((valid+invalid)/1010000*100,2),'final_turnout_pct':50.5,
-            'fact_source_id':'DEMO-VOTES-01','schema_source_id':'DEMO-SCHEMA-02','verified_source_ids':[],
+            'fact_source_id':'DEMO-VOTES-01','schema_source_id':None,'schema_version':'2.0','verified_source_ids':[],
             'complete':step==30,'candidates':rows,'districts':districts,
             'withdrawn_candidates':[c for c in seed()['candidates'] if c['candidate_withdrawn']],
             'leader_candidate_id':max(rows,key=lambda r:r['votes'])['candidate_id'] if valid else None,
@@ -195,6 +195,10 @@ def main():
     (ROOT/'docs/housing-article-draft-20261123.md').write_text('# 후보별 주거 공약 비교 · 검토 초안\n\n'+
         '\n\n'.join(r['sentence'] for r in article_rows)+'\n\n---\n'+LABEL+'\nAI 작성 초안 · 사람 최종 승인 전\n',encoding='utf-8')
     make_pdfs(evidence); make_offline(frames,article_rows)
+    from housing_search import get_housing_search
+    get_housing_search.cache_clear()
+    write_json(DATA/'rag/housing_search_example.json',
+        get_housing_search().search(evidence['question'], include_withdrawn=True))
     from table_data import export_tables
     export_tables(candidates,evidence,frames,article_rows)
     write_json(DATA/'dummy_manifest.json',{'label':LABEL,'candidates':6,'running':5,'withdrawn':1,'districts':25,
