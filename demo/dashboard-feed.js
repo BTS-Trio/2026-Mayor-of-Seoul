@@ -3,15 +3,20 @@ let activeSocket;
 let replayTimer;
 let previousLeader;
 let nextMilestone;
+let draftAudio;
 
 function showDrafts(notice = '') {
   const entries = VoteDrafts.list();
-  const pending = entries.filter(entry => entry.status === 'pending').length;
+  const pending = entries.filter(entry => entry.status === 'pending');
+  const latestPending = pending.at(-1);
   const unread = VoteDrafts.unread();
   const [latest] = VoteDrafts.approved(entries);
-  set('arrival-count', unread ? '새 초안 도착 ' + unread + '건' : '검토 대기 ' + pending + '건');
+  set('breaking-draft-title', latestPending?.title ?? '개표 기사 자동 생성');
+  get('breaking-draft-guide').hidden = Boolean(latestPending);
+  set('arrival-count', pending.length || unread ? '띵동! 새 초안 도착' : '초안 생성 대기');
+  set('arrival-unread', unread ? ' · ' + unread + '건' : '');
   set('arrival-description', notice || (entries.length
-    ? '검토 대기 ' + pending + '건 · 생성된 기사와 검토 결과를 확인할 수 있습니다.'
+    ? '검토 대기 ' + pending.length + '건 · 생성된 기사와 검토 결과를 확인할 수 있습니다.'
     : '집계가 진행되면 개표 기사 초안이 자동으로 생성됩니다.'));
   if (!latest) {
     set('draft-title', '서울시장 모의 개표');
@@ -29,6 +34,24 @@ function showDrafts(notice = '') {
 function generateDraft(reason) {
   if (lastFrame?.counted_ballots && VoteDrafts.create(lastFrame, reason, offline ? 'sample' : 'feed')) {
     showDrafts('새 개표 기사 초안이 도착했습니다.');
+    playDraftChime();
+  }
+}
+
+function playDraftChime() {
+  if (draftAudio?.state !== 'running') return;
+  const start = draftAudio.currentTime;
+  for (const [frequency, delay] of [[880, 0], [660, 0.18]]) {
+    const tone = draftAudio.createOscillator();
+    const volume = draftAudio.createGain();
+    const time = start + delay;
+    tone.frequency.value = frequency;
+    volume.gain.setValueAtTime(0, time);
+    volume.gain.linearRampToValueAtTime(0.16, time + 0.015);
+    volume.gain.exponentialRampToValueAtTime(0.001, time + 0.24);
+    tone.connect(volume).connect(draftAudio.destination);
+    tone.start(time);
+    tone.stop(time + 0.24);
   }
 }
 
@@ -86,7 +109,14 @@ function startReplay() {
   });
 }
 
-get('replay-feed').addEventListener('click', startReplay);
+get('replay-feed').addEventListener('click', () => {
+  // Browsers require a user gesture before Web Audio can play.
+  if (window.AudioContext) {
+    draftAudio ??= new AudioContext();
+    draftAudio.resume().catch(() => {});
+  }
+  startReplay();
+});
 get('build-draft').addEventListener('click', () => generateDraft('수동 생성'));
 window.addEventListener('pageshow', () => showDrafts());
 window.addEventListener('storage', () => showDrafts());

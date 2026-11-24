@@ -103,8 +103,13 @@ async function decide(status) {
 function loadDrafts() {
   const previous = picker.value;
   drafts = VoteDrafts.list();
-  picker.replaceChildren(...[...drafts].reverse().map(entry => new Option(entry.title, entry.id)));
+  const newestFirst = [...drafts].reverse();
+  picker.replaceChildren(...newestFirst.map(entry => new Option(entry.title, entry.id)));
   if (drafts.some(entry => entry.id === previous)) picker.value = previous;
+  else {
+    const latestPending = newestFirst.find(entry => entry.status === 'pending');
+    if (latestPending) picker.value = latestPending.id;
+  }
   picker.disabled = !drafts.length;
   VoteDrafts.markSeen();
   refresh();
