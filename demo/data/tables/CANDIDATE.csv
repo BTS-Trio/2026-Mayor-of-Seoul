@@ -1,0 +1,7 @@
+﻿candidate_id,name,party,status,data_kind,withdrawn_at,profile
+DEMO-C01,강도윤,새길미래당,running,synthetic,,교육용 창작 인물 1. 가상 도시정책연구소 연구원 경력 설정.
+DEMO-C02,오세훈,도시성장당,running,collected_real,,교육용 방송의 정당명과 사진은 가상 설정이며 기존 수집 주거 공약 일부만 근거로 사용합니다.
+DEMO-C03,서지안,푸른생활당,running,synthetic,,교육용 창작 인물 3. 가상 도시정책연구소 연구원 경력 설정.
+DEMO-C04,한서준,시민연결당,running,synthetic,,교육용 창작 인물 4. 가상 도시정책연구소 연구원 경력 설정.
+DEMO-C05,윤채린,함께누리당,running,synthetic,,교육용 창작 인물 5. 가상 도시정책연구소 연구원 경력 설정.
+DEMO-C06,백태오,서울새봄당,withdrawn,synthetic,2026-06-01T12:00:00+09:00,교육용 창작 인물 6. 가상 도시정책연구소 연구원 경력 설정.

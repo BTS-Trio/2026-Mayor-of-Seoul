@@ -11,7 +11,9 @@ from fastapi.responses import FileResponse
 from websockets.asyncio.client import connect
 from websockets.exceptions import WebSocketException
 
+from housing_review import router as housing_review_router
 from housing_search import get_housing_search
+from article_archive import router as article_archive_router
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
@@ -19,14 +21,38 @@ KST = timezone(timedelta(hours=9))
 FEED_URL = os.environ.get("ELECTION_FEED_URL", "ws://127.0.0.1:8001/ws/feed")
 MESSAGE_TIMEOUT_SECONDS = 10
 app = FastAPI(title="서울시장 모의 개표 · 방송 송출 서버")
+app.include_router(housing_review_router)
+app.include_router(article_archive_router)
 
 
 @app.get("/")
+@app.get("/index.html", include_in_schema=False)
 def dashboard():
     return FileResponse(ROOT / "index.html")
 
 
+@app.get("/dashboard-feed.js", include_in_schema=False)
+def dashboard_script():
+    return FileResponse(ROOT / "dashboard-feed.js", media_type="application/javascript")
+
+
+@app.get("/vote-drafts.js", include_in_schema=False)
+def vote_drafts_script():
+    return FileResponse(ROOT / "vote-drafts.js", media_type="application/javascript")
+
+
+@app.get("/vote-review.html", include_in_schema=False)
+def vote_review():
+    return FileResponse(ROOT / "vote-review.html")
+
+
+@app.get("/offline-preview.html", include_in_schema=False)
+def count_details():
+    return FileResponse(ROOT / "count-details.html")
+
+
 @app.get("/housing-search")
+@app.get("/housing-search.html", include_in_schema=False)
 def housing_search_page():
     return FileResponse(ROOT / "housing-search.html")
 
@@ -46,48 +72,35 @@ def housing_search_status():
 
 
 @app.get("/api/housing/search")
-def search_housing_evidence(q: str = "", candidate: str = "", limit: int = 10):
+def search_housing_evidence(q: str = "", candidate: str = "", limit: int = 10, include_withdrawn: bool = False):
     index = housing_index()
     try:
-        return index.search(q, candidate=candidate, limit=limit)
+        return index.search(q, candidate=candidate, limit=limit, include_withdrawn=include_withdrawn)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
 
 @app.get("/api/housing/draft")
 def housing_draft():
-    """Load the team's existing article and link its cited pages."""
-    sources = {
-        (item["document_id"], item["pdf_page"]): item["stored_pdf_url"]
-        for item in housing_index().chunks
-    }
+    from article_data import draft_response
     try:
-        markdown = (ROOT / "docs" / "housing-article-draft-20261123.md").read_text(encoding="utf-8")
-        article, separator, notes = markdown.partition("\n---\n")
-        heading, _, body = article.partition("\n")
-        if not separator or not heading.startswith("# ") or not body.strip():
-            raise ValueError("Invalid article draft format")
-    except (OSError, ValueError) as error:
-        raise HTTPException(status_code=503, detail="기사 초안 문서를 확인해 주세요.") from error
+        return draft_response()
+    except (OSError, ValueError, KeyError) as error:
+        raise HTTPException(503, "기사와 근거 연결을 확인해 주세요.") from error
 
-    withdrawal_source = re.search(r"사퇴 표시 출처: \[[^\]]+\]\((https://[^\s)]+)\)", notes)
-    sentences = []
-    for line in filter(None, map(str.strip, body.splitlines())):
-        text, _, _ = line.partition(" [")
-        citations = [
-            {"label": f"{document_id} · PDF {page}쪽",
-             "url": sources.get((document_id, int(page)))}
-            for document_id, page in re.findall(r"\[([A-Z0-9-]+), PDF (\d+)쪽\]", line)
-        ]
-        withdrawal = re.search(r"\[사퇴 표시 근거: ([A-Z0-9-]+)\]", line)
-        if withdrawal:
-            citations.append({
-                "label": f"사퇴 근거 · {withdrawal[1]}",
-                "url": withdrawal_source[1] if withdrawal_source else None,
-            })
-        sentences.append({"text": text, "citations": citations})
 
-    return {"title": heading[2:], "sentences": sentences}
+@app.get("/api/candidates")
+def candidates():
+    return json.loads((DATA / "candidates.json").read_text(encoding="utf-8"))
+
+
+@app.get("/sources/{filename}")
+def source_pdf(filename: str):
+    documents = housing_index().documents.values()
+    allowed = {d["document_id"] + ".pdf": d for d in documents if d["data_kind"] == "synthetic"}
+    if filename not in allowed:
+        raise HTTPException(404, "등록된 PDF가 아닙니다.")
+    return FileResponse(ROOT / allowed[filename]["local_document"], media_type="application/pdf")
 
 
 @app.get("/embic.webp")
@@ -107,7 +120,7 @@ def election_banner():
 
 @app.get("/health")
 def health():
-    return {"role": "broadcast", "mode": "simulation"}
+    return {"role": "broadcast", "mode": "synthetic"}
 
 
 @app.get("/api/final")
@@ -120,7 +133,7 @@ def decode_snapshot(raw_message, expected_sequence):
     if (
         not isinstance(snapshot, dict)
         or snapshot.get("event") != "snapshot"
-        or snapshot.get("mode") != "simulation"
+        or snapshot.get("mode") != "synthetic"
         or type(snapshot.get("sequence")) is not int
         or snapshot["sequence"] != expected_sequence
         or type(snapshot.get("complete")) is not bool

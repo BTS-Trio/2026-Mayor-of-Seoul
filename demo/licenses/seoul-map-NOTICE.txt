@@ -1,0 +1,15 @@
+Seoul district map attribution
+
+Source: https://github.com/southkorea/seoul-maps
+Author attribution from repository README: Lucy Park (e9t)
+File: kostat/2013/json/seoul_municipalities_geo_simple.json
+Source blob SHA: f2dee2ce7c93f761ce8816258d8cc207a6405fc6
+License identified in source README: Apache License 2.0 (Apache-2.0.txt).
+
+Modified 2026-11-24: projected coordinates into inline SVG paths, added
+district labels, interaction and decorative styling in demo/index.html.
+This simplified 2013 boundary map is illustrative, not a claim about
+official 2026 election boundaries. Current demo vote figures are synthetic.
+
+The skyline background was generated for this design; it is not election
+coverage, an official map, or a live photograph of vote counting.

@@ -1,0 +1,31 @@
+{
+  "encoding": "utf-8-sig",
+  "null": "빈 필드=NULL",
+  "row_counts": {
+    "CANDIDATE": 6,
+    "SOURCE": 8,
+    "SNAPSHOT": 31,
+    "SNAPSHOT_VOTE": 155,
+    "EVIDENCE": 9,
+    "ARTICLE": 1,
+    "ARTICLE_EVIDENCE": 7,
+    "FACT_CHECK": 0,
+    "REVIEW": 0,
+    "DISTRICT": 25,
+    "DISTRICT_VOTE": 3875
+  },
+  "import_order": [
+    "CANDIDATE",
+    "SOURCE",
+    "SNAPSHOT",
+    "SNAPSHOT_VOTE",
+    "EVIDENCE",
+    "ARTICLE",
+    "ARTICLE_EVIDENCE",
+    "FACT_CHECK",
+    "REVIEW",
+    "DISTRICT",
+    "DISTRICT_VOTE"
+  ],
+  "note": "FACT_CHECK·REVIEW는 실제 실행 전 0행. 승인·검수 결과를 만들어 채우지 않음."
+}

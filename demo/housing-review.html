@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>주거 공약 기사 검증</title>
+  <style>
+    body { margin: 0 auto; max-width: 62rem; padding: 1.5rem; background: #f2f5fa; color: #182a40; font: 1rem/1.6 system-ui, sans-serif; }
+    section { background: white; margin: 1rem 0; padding: 1.2rem; border: 1px solid #d4deea; border-radius: .8rem; }
+    button, input, select, textarea { font: inherit; margin: .25rem; }
+    textarea { width: min(100%, 35rem); }
+    li { margin-bottom: .6rem; overflow-wrap: anywhere; }
+    [data-blocked="true"] { color: #9a2432; font-weight: bold; }
+  </style>
+</head>
+<body>
+<main>
+  <a href="/">개표 데스크</a>
+  <h1>주거 공약 기사 검증</h1>
+  <p id="review-notice">제공된 초안과 문장별 근거를 대조합니다. 검증 사례의 AI 판정은 시연용 테스트 값입니다.</p>
+  <section>
+    <h2 id="review-title">저장 기사 검증 사례</h2>
+    <p id="review-question"></p>
+    <div id="fixture-controls">
+    <label for="scenario">검증 사례</label>
+    <select id="scenario">
+      <option value="normal">정상</option>
+      <option value="missing_source">출처 누락</option>
+      <option value="ai_mismatch">AI 판정 불일치</option>
+    </select>
+    <button id="run">검증 실행</button>
+    </div>
+    <p id="validation" role="status"></p>
+    <ol id="sentences"></ol>
+    <label for="reviewer">검토자 이름</label>
+    <input id="reviewer" maxlength="80">
+    <p><label for="review-key">검토 키</label> <input id="review-key" type="password" autocomplete="off"></p>
+    <p><label for="reason">처리 사유 (반려 시 필수)</label></p>
+    <textarea id="reason" maxlength="1000" rows="2"></textarea>
+    <div>
+      <button id="approve" disabled>승인</button>
+      <button id="reject" disabled>반려</button>
+    </div>
+    <p id="message" role="status"></p>
+  </section>
+  <section>
+    <h2>검증·승인·반려 이력</h2>
+    <button id="refresh">이력 새로고침</button>
+    <ol id="history"></ol>
+  </section>
+</main>
+<script>
+const get = id => document.getElementById(id);
+const api = '/api/housing-review';
+const labels = {generated: '새 초안 생성', validated: '검증', approve: '승인', reject: '반려', blocked: '승인 차단', pending:'검토 대기'};
+let draft;
+let busy = false;
+async function request(path, body) {
+  const response = await fetch(api + path, body ? {
+    method: 'POST', headers: {
+      'Content-Type': 'application/json',
+      ...(path.endsWith('/decision') ? {'X-Reviewer-Key': get('review-key').value.trim()} : {})
+    }, body: JSON.stringify(body)
+  } : {cache: 'no-store'});
+  const data = await response.json();
+  if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : data.detail?.message || '서버가 요청을 거절했습니다.');
+  return data;
+}
+function add(list, text) {
+  const item = document.createElement('li');
+  item.textContent = text;
+  list.append(item);
+  return item;
+}
+function buttons() {
+  get('run').disabled = busy;
+  get('approve').disabled = busy || !draft?.validation.can_approve || draft.status !== 'pending';
+  get('reject').disabled = busy || !draft || draft.status !== 'pending';
+}
+async function refresh() {
+  const history = get('history');
+  try {
+    const entries = await request('/history');
+    history.replaceChildren();
+    for (const entry of entries) {
+      const errors = entry.validation.issues.map(issue => [issue.sentence_id, issue.message].filter(Boolean).join(' '));
+      add(history, [new Date(entry.created_at).toLocaleString('ko-KR'), labels[entry.event],
+        entry.draft_id, entry.reviewer, entry.reason,
+        errors.length ? errors.join(' / ') : '검증 통과'].filter(Boolean).join(' · '));
+    }
+    if (!entries.length) add(history, '저장된 이력이 없습니다.');
+  } catch {
+    history.replaceChildren();
+    add(history, '이력을 불러오지 못했습니다.');
+  }
+}
+get('run').onclick = async () => {
+  busy = true;
+  draft = undefined;
+  buttons();
+  get('message').textContent = '';
+  get('validation').textContent = '';
+  get('sentences').replaceChildren();
+  try {
+    draft = await request('/drafts', {scenario: get('scenario').value});
+    const {issues, can_approve} = draft.validation;
+    get('validation').dataset.blocked = String(!can_approve);
+    get('validation').textContent = can_approve ? '검증 통과' : '승인 차단 · ' +
+      issues.map(issue => issue.message + (issue.sentence_id ? ' (' + issue.sentence_id + ')' : '')).join(' / ');
+    for (const row of draft.sentences) {
+      const text = row.citation ? row.sentence : row.sentence.replace(/\s*\[[^\]]+\]/g, '');
+      const item = add(get('sentences'), row.sentence_id + ' · ' + text);
+      if (row.stored_pdf_url) {
+        const anchor = document.createElement('a');
+        anchor.href = row.stored_pdf_url;
+        anchor.textContent = ' 원문 PDF';
+        item.append(anchor);
+      }
+    }
+    await refresh();
+  } catch (error) {
+    get('message').textContent = error.message;
+  } finally {
+    busy = false;
+    buttons();
+  }
+};
+async function decide(action) {
+  if (busy || !draft || (action === 'approve' && !draft.validation.can_approve)) return;
+  busy = true;
+  buttons();
+  try {
+    await request('/drafts/' + draft.id + '/decision', {
+      action, reviewer: get('reviewer').value.trim(), reason: get('reason').value.trim()
+    });
+    get('message').textContent = labels[action] + ' 완료';
+    draft = undefined;
+    await refresh();
+  } catch (error) {
+    get('message').textContent = error.message;
+  } finally {
+    busy = false;
+    buttons();
+  }
+}
+get('approve').onclick = () => decide('approve');
+get('reject').onclick = () => decide('reject');
+get('refresh').onclick = refresh;
+refresh();
+const savedId=new URLSearchParams(location.search).get('draft_id');
+if (savedId) {
+  get('fixture-controls').hidden=true;
+  busy=true; buttons();
+  request('/drafts/'+encodeURIComponent(savedId)).then(saved => {
+    draft=saved;
+    get('review-title').textContent=saved.title || '저장된 초안';
+    get('review-question').textContent=saved.question ? '질문: '+saved.question : '';
+    get('review-notice').textContent=saved.generation_notice ? saved.label+' · '+saved.generation_notice+' '+saved.review_notice : '저장된 검증 사례입니다.';
+    get('validation').dataset.blocked=String(!saved.validation.can_approve);
+    get('validation').textContent=saved.validation.can_approve ? '원문·후보·인용 일치 검사 통과 · 문맥과 충분성을 검토한 뒤 승인하세요.' :
+      '승인 차단 · '+saved.validation.issues.map(x=>x.message).join(' / ');
+    get('sentences').replaceChildren();
+    for (const row of saved.sentences) {
+      const item=add(get('sentences'),row.sentence);
+      if (row.stored_pdf_url) {
+        const anchor=document.createElement('a'); anchor.href=row.stored_pdf_url; anchor.textContent=' 원문 PDF'; item.append(anchor);
+      }
+    }
+    get('message').textContent='저장 상태: '+(labels[saved.status] || saved.status);
+  }).catch(error => {get('message').textContent=error.message;}).finally(()=>{busy=false;buttons();});
+}
+</script>
+</body>
+</html>

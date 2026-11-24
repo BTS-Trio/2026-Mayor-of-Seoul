@@ -1,8 +1,9 @@
-source_id,provider,title,reference_date,access_date,status,url
-SRC-NEC-01,중앙선거관리위원회,시·도지사선거 개표결과 공개 항목,2026-06-03,2026-11-20,전국 시·도지사 원본 CSV 수집·서울 확정치 검증·이용허락범위 제한 없음,https://www.data.go.kr/data/15162288/fileData.do
-SRC-FINAL-01,한국경제,서울시장 최종 개표 5인 득표 및 총계,2026-06-05,2026-11-20,최종 후보 5인 및 총계 사용,https://www.hankyung.com/article/2026060599297
-SRC-FINAL-02,연합뉴스,서울시장 최종 개표 확정 보도,2026-06-05,2026-11-20,상위 2인 및 격차 교차검증,https://www.yna.co.kr/amp/view/AKR20260605109900001
-SRC-FINAL-03,한겨레,서울시장 본투표 개표 완료 보도,2026-06-05,2026-11-20,상위 2인 및 격차 교차검증,https://www.hani.co.kr/arti/politics/politics_general/1262168.html
-SRC-NEC-02,중앙선거관리위원회,정책공약마당,미기록,2026-11-20,공식 문서 목록 확인 및 후보별 원문 확보 예정,https://policy.nec.go.kr/plc/main/initUMAMain.do
-SRC-NEC-03,중앙선거관리위원회,구·시·군의장선거 최종 개표,2026-06-03,2026-11-20,후속 확장 후보,https://www.data.go.kr/data/15162558/fileData.do
-SRC-NEC-04,중앙선거관리위원회,구·시·군의회의원선거 최종 개표,2026-06-03,2026-11-20,후속 확장 후보,https://www.data.go.kr/data/15162708/fileData.do
+﻿source_id,provider,title,data_kind,url,local_path,sha256,pdf_pages
+DEMO-VOTES-01,BTS-Trio 교육용 창작,가상 개표 시나리오,synthetic,,,,
+DEMO-DOC-01,BTS-Trio 교육용 창작,강도윤 가상 주거 공약서,synthetic,/sources/DEMO-DOC-01.pdf,data/pdf/DEMO-DOC-01.pdf,b61607d3ded129c35d7aea0b0908c07a0490bfa3d8f587d511f5a4783895b768,1
+DEMO-DOC-03,BTS-Trio 교육용 창작,서지안 가상 주거 공약서,synthetic,/sources/DEMO-DOC-03.pdf,data/pdf/DEMO-DOC-03.pdf,5f18edebaab9d416dcdef0202f4875c4af22f1b30a41ac6359d2eab74b2aa788,1
+DEMO-DOC-04,BTS-Trio 교육용 창작,한서준 가상 주거 공약서,synthetic,/sources/DEMO-DOC-04.pdf,data/pdf/DEMO-DOC-04.pdf,3c361724a0e24581cf13f9db03579f55b338c8210bf0bdb4a915c5c12a875590,1
+DEMO-DOC-05,BTS-Trio 교육용 창작,윤채린 가상 주거 공약서,synthetic,/sources/DEMO-DOC-05.pdf,data/pdf/DEMO-DOC-05.pdf,13bcf1e7598b82b5edfbba23a7385bc986294d2000f8aacc24df603177c604a2,1
+DEMO-DOC-06,BTS-Trio 교육용 창작,백태오 가상 주거 공약서,synthetic,/sources/DEMO-DOC-06.pdf,data/pdf/DEMO-DOC-06.pdf,c2f7bd60b08dcf698472eb9b32726baea51e7fd58d2c357ccfec2f88bacdcfbc,1
+SEOUL26-P5-02,기존 선관위 공약 PDF 수집본,20260603_서울특별시_오세훈_5대공약.pdf,collected_real,https://drive.google.com/file/d/1Xfrw0DUUb4usTBKSRRNZBsg2yt4GnMkx/view,,,5
+DEMO-STATUS-WD-06,BTS-Trio 교육용 창작,백태오 사퇴 설정,synthetic,/api/candidates,,,

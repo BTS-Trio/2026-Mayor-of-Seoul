@@ -32,3 +32,5 @@ jobs:
         run: python -m pip install -r requirements-dev.txt
       - name: Run replay and outage tests
         run: python -m unittest -v
+      - name: Check approval and rejection history after a Chrome reload
+        run: python check_housing_review_browser.py

@@ -18,7 +18,7 @@ app = FastAPI(title="서울시장 모의 개표 · 선관위 송신 서버")
 
 @app.get("/health")
 def health():
-    return {"role": "election-source", "mode": "simulation"}
+    return {"role": "election-source", "mode": "synthetic"}
 
 
 @app.websocket("/ws/feed")

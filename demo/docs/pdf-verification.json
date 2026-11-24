@@ -1,0 +1,17 @@
+{
+  "verified_date_kst": "2026-11-23",
+  "retained_real_pdf": {
+    "document_id": "SEOUL26-P5-02",
+    "drive_file_id": "1Xfrw0DUUb4usTBKSRRNZBsg2yt4GnMkx",
+    "page_count": 5,
+    "cited_pages_checked": [1, 2, 4],
+    "method": "Drive PDF viewer page headings and body text; connector full extracted text",
+    "scope": "인용 페이지의 공약 문구·수치·쪽수 확인. 정책 이행·실현 가능성 검증 아님. 원본 바이너리 미수정.",
+    "page_claims": {"1": "2031년까지 31만 호 착공, 3년 내 8.5만 호 착공", "2": "2031년까지 공공주택 약 13만 호 및 월세 지원", "4": "고령친화 리모델링 지원 포함"}
+  },
+  "synthetic_pdfs": {
+    "document_ids": ["DEMO-DOC-01", "DEMO-DOC-03", "DEMO-DOC-04", "DEMO-DOC-05", "DEMO-DOC-06"],
+    "pages_each": 1,
+    "checks": ["PDF 파일 열기", "후보 및 문서 ID", "본문 전체 추출 비교", "기간·지원금·총예산 계산", "PNG 렌더 검수"]
+  }
+}

@@ -61,10 +61,12 @@ class TwoServerTest(unittest.IsolatedAsyncioTestCase):
                 async with connect(browser) as stream:
                     events = [json.loads(message) async for message in stream]
                 self.assertEqual([event["sequence"] for event in events], list(range(31)))
-                self.assertTrue(all(event["mode"] == "simulation" for event in events))
+                self.assertTrue(all(event["mode"] == "synthetic" for event in events))
                 self.assertTrue(all(event["source_sent_at"] <= event["delivered_at"] for event in events))
                 self.assertEqual(events[-1]["count_progress_pct"], 100)
-                self.assertEqual(events[-1]["counted_ballots"], 5289383)
+                self.assertEqual(events[-1]["counted_ballots"], 1010000)
+                self.assertEqual(len(events[-1]["districts"]),25)
+                self.assertEqual(sum(sum(d['votes']) for d in events[-1]['districts'].values()),1000000)
                 self.assertTrue(events[-1]["complete"])
 
         unavailable_port = free_port()

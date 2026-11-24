@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>서울시장 선거 기사 모아보기</title>
+  <style>
+    :root{color-scheme:light;font-family:"Malgun Gothic",system-ui,sans-serif;color:#2c2b3c;background:#f7f3ef;--accent:#ab4a48}
+    *{box-sizing:border-box}body{margin:0}button,a{font:inherit}button{cursor:pointer}a:focus-visible,button:focus-visible{outline:3px solid #317b78;outline-offset:3px}
+    .layout{display:grid;grid-template-columns:218px minmax(0,1fr);gap:26px;max-width:1440px;margin:auto;padding:26px;align-items:start}
+    .sidebar{background:white;border-radius:22px;padding:22px 14px;position:sticky;top:26px;min-height:calc(100vh - 52px)}
+    .sidebar a{display:block;padding:10px 12px;margin-bottom:20px;font-size:.84rem;color:#625966;text-decoration:none}
+    .sidebar button{display:block;width:100%;border:0;border-radius:10px;padding:11px 12px;margin:4px 0;background:transparent;color:#514652;text-align:left;font-size:.88rem}
+    .sidebar button:hover{background:#fcf1ec}.sidebar button[aria-pressed=true]{background:#ab4a48;color:white;font-weight:700}
+    .banner{position:relative;overflow:hidden;border-radius:20px;min-height:147px;display:flex;align-items:center;padding:28px 32px;background:#f8e6d8}
+    .banner h1{position:relative;z-index:1;font-size:clamp(1.7rem,4vw,3rem);letter-spacing:-.06em;margin:0;color:#7c3738}
+    .banner::after{content:"";position:absolute;right:4%;top:-25px;width:190px;height:190px;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 16px,#d4877255 17px 23px);pointer-events:none}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,205px),1fr));gap:16px;list-style:none;padding:0;margin:20px 0}
+    .grid li{min-width:0}.card{height:100%;width:100%;text-align:left;border:0;border-radius:16px;padding:10px;background:white;color:inherit;box-shadow:0 2px 8px #50382a0a}
+    .card:hover{box-shadow:0 5px 16px #50382a20}.cover{display:block;height:104px;border-radius:10px;background:repeating-linear-gradient(140deg,transparent 0 16px,#ffffff75 18px 19px,transparent 21px 35px),#f6ddd3}
+    [data-kind=followup] .cover{background-color:#d8ece7}[data-kind=housing] .cover{background-color:#f3e6ba}
+    .card strong{display:block;margin:12px 6px 5px;font-size:.95rem;line-height:1.5;overflow-wrap:anywhere}
+    .date{display:block;margin:0 6px 5px;color:#6a5c66;font-size:.76rem}
+    #archive-status{color:#655861;margin:20px 4px}#archive-status:empty{display:none}
+    dialog{width:min(670px,calc(100% - 28px));color:inherit;border:0;border-radius:18px;padding:clamp(22px,5vw,44px);box-shadow:0 20px 80px #35263138}
+    dialog::backdrop{background:#312c4099}.close{display:block;margin:0 0 14px auto;border:0;border-radius:9px;padding:7px 12px;background:#f7ece8;color:#773e3d}
+    dialog h2{margin:0;line-height:1.35;letter-spacing:-.045em;overflow-wrap:anywhere}dialog p{line-height:1.85;white-space:pre-line;overflow-wrap:anywhere}dialog footer{border-top:1px solid #e6dcd8;padding-top:12px;color:#62545b;font-size:.84rem}
+    @media(max-width:700px){.layout{grid-template-columns:minmax(0,1fr);padding:14px;gap:12px}.sidebar{position:static;min-height:0;padding:8px;display:flex;flex-wrap:wrap;gap:4px}.sidebar a,.sidebar button{width:auto;margin:0;padding:8px;font-size:.78rem}.banner{min-height:104px;padding:20px}.banner::after{opacity:.48}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.cover{height:72px}}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" aria-label="기사 분류">
+      <a href="index.html">← 대시보드</a>
+      <button type="button" data-filter="all" aria-pressed="true">전체</button>
+      <button type="button" data-filter="previous" aria-pressed="false">이전 개표 기사</button>
+      <button type="button" data-filter="count" aria-pressed="false">모의 개표</button>
+      <button type="button" data-filter="followup" aria-pressed="false">후속기사</button>
+      <button type="button" data-filter="housing" aria-pressed="false">공약 기사</button>
+    </nav>
+    <main>
+      <header class="banner"><h1>기사 모아보기</h1></header>
+      <p id="archive-status" role="status"></p>
+      <ul class="grid" id="article-grid"></ul>
+    </main>
+  </div>
+  <dialog id="reader" aria-labelledby="article-title">
+    <form method="dialog"><button class="close">닫기</button></form>
+    <h2 id="article-title"></h2>
+    <p id="article-body"></p>
+    <footer id="article-source" hidden></footer>
+  </dialog>
+  <script src="vote-drafts.js"></script>
+  <script>
+    const get = id => document.getElementById(id);
+    const clock = new Intl.DateTimeFormat('ko-KR', {
+      dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Seoul'
+    });
+    const reader = get('reader');
+    const filters = [...document.querySelectorAll('[data-filter]')];
+    let articles = [];
+
+    function openArticle(item) {
+      get('article-title').textContent = item.title;
+      get('article-body').textContent = item.body;
+      const source = [item.simulated_at && '가상 집계 시각 ' + clock.format(new Date(item.simulated_at)), item.source]
+        .filter(Boolean).join(' · ');
+      get('article-source').textContent = source;
+      get('article-source').hidden = !source;
+      const url = new URL(location.href);
+      url.searchParams.set('article', item.id);
+      history.replaceState(null, '', url);
+      if (!reader.open) reader.showModal();
+    }
+
+    function renderGrid(filter) {
+      const items = articles.filter(article => filter === 'all' || article.kind === filter ||
+        (filter === 'previous' && (article.kind === 'count' || article.kind === 'followup')));
+      for (const button of filters) button.setAttribute('aria-pressed', String(button.dataset.filter === filter));
+      get('archive-status').textContent = items.length ? '' : '공개된 기사가 없습니다.';
+      get('article-grid').replaceChildren(...items.map(article => {
+        const row = document.createElement('li');
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'card';
+        button.dataset.kind = article.kind;
+        const cover = document.createElement('span');
+        cover.className = 'cover';
+        cover.setAttribute('aria-hidden', 'true');
+        const title = document.createElement('strong');
+        title.textContent = article.title;
+        button.append(cover, title);
+        if (article.simulated_at) {
+          const date = document.createElement('span');
+          date.className = 'date';
+          date.textContent = clock.format(new Date(article.simulated_at));
+          button.append(date);
+        }
+        button.addEventListener('click', () => openArticle(article));
+        row.append(button);
+        return row;
+      }));
+    }
+
+    reader.addEventListener('close', () => {
+      const url = new URL(location.href);
+      url.searchParams.delete('article');
+      history.replaceState(null, '', url);
+    });
+    for (const button of filters) button.addEventListener('click', () => renderGrid(button.dataset.filter));
+
+    async function loadArticles() {
+      if (location.protocol === 'file:') {
+        articles = VoteDrafts.approved().map(entry => ({...entry, simulated_at: entry.frame.simulated_at}));
+      } else {
+        try {
+          const response = await fetch('/api/articles');
+          if (!response.ok) throw new Error();
+          const archive = await response.json();
+          articles = [...archive.vote, ...archive.housing];
+        } catch {
+          get('archive-status').textContent = '기사 목록을 불러오지 못했습니다.';
+          return;
+        }
+      }
+      renderGrid(location.hash === '#previous-articles' ? 'previous' : 'all');
+      const requested = new URLSearchParams(location.search).get('article');
+      const article = articles.find(item => item.id === requested);
+      if (article) openArticle(article);
+    }
+    loadArticles();
+  </script>
+</body>
+</html>

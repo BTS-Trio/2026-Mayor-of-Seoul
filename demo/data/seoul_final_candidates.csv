@@ -1,6 +1,6 @@
-candidate_id,candidate,party,votes,reported_share_pct
-SEOUL-01,정원오,더불어민주당,2515560,48.07
-SEOUL-02,오세훈,국민의힘,2575819,49.22
-SEOUL-03,김정철,개혁신당,43321,0.82
-SEOUL-04,권영국,정의당,54315,1.03
-SEOUL-05,유지혜,여성의당,43967,0.84
+﻿candidate_id,candidate,party,votes,reported_share_pct,mode
+DEMO-C01,강도윤,새길미래당,430000,43.0,synthetic
+DEMO-C02,오세훈,도시성장당,450000,45.0,synthetic
+DEMO-C03,서지안,푸른생활당,60000,6.0,synthetic
+DEMO-C04,한서준,시민연결당,40000,4.0,synthetic
+DEMO-C05,윤채린,함께누리당,20000,2.0,synthetic
