@@ -13,6 +13,7 @@ from websockets.exceptions import WebSocketException
 
 from housing_review import router as housing_review_router
 from housing_search import get_housing_search
+from article_archive import router as article_archive_router
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
@@ -21,6 +22,7 @@ FEED_URL = os.environ.get("ELECTION_FEED_URL", "ws://127.0.0.1:8001/ws/feed")
 MESSAGE_TIMEOUT_SECONDS = 10
 app = FastAPI(title="서울시장 모의 개표 · 방송 송출 서버")
 app.include_router(housing_review_router)
+app.include_router(article_archive_router)
 
 
 @app.get("/")

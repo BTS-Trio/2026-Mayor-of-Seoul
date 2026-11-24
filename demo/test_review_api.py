@@ -39,6 +39,7 @@ class ReviewApiTest(unittest.TestCase):
 
     def test_normal_approval_persists_in_erd_tables(self):
         draft=self.create(); self.assertTrue(draft['validation']['can_approve'])
+        pending = self.create()
         response=self.client.post(f"/api/housing-review/drafts/{draft['id']}/decision",json={'action':'approve','reviewer':'테스트 검토자'})
         self.assertEqual(response.status_code,200)
         with closing(sqlite3.connect(self.db)) as db:
@@ -46,8 +47,25 @@ class ReviewApiTest(unittest.TestCase):
             self.assertEqual(db.execute('SELECT action FROM REVIEW').fetchone()[0],'approve')
             self.assertEqual(db.execute('SELECT status FROM ARTICLE WHERE article_id=?',(draft['id'],)).fetchone()[0],'approve')
         with TestClient(app) as reloaded:
-            self.assertEqual(len(reloaded.get('/api/housing-review/history').json()),2)
+            self.assertEqual(len(reloaded.get('/api/housing-review/history').json()),3)
+            public = reloaded.get('/api/articles').json()['housing']
+            self.assertEqual([article['id'] for article in public], [draft['id']])
+            self.assertNotIn(pending['id'], [article['id'] for article in public])
         self.assertEqual(self.client.post(f"/api/housing-review/drafts/{draft['id']}/decision",json={'action':'approve','reviewer':'다른 검토자'}).status_code,409)
+
+    def test_public_vote_article_uses_original_snapshot_and_is_saved_once(self):
+        frame = json.loads((Path(__file__).parent / 'data' / 'demo_snapshots.jsonl')
+                           .read_text(encoding='utf-8').splitlines()[-1])
+        request = {'event_id': frame['event_id'], 'reason': '최종 집계',
+                   'votes': max(candidate['votes'] for candidate in frame['candidates'])}
+        mismatch = {**request, 'votes': request['votes'] + 100}
+        self.assertEqual(self.client.post('/api/articles/vote', json=mismatch).status_code, 422)
+        self.assertEqual(self.client.get('/api/articles').json()['vote'], [])
+        for _ in range(2):
+            self.assertEqual(self.client.post('/api/articles/vote', json=request).status_code, 200)
+        articles = self.client.get('/api/articles').json()['vote']
+        self.assertEqual(len(articles), 1)
+        self.assertIn(frame['event_id'], articles[0]['source'])
 
     def test_missing_source_blocks_approval_and_rejection_requires_reason(self):
         draft=self.create('missing_source'); self.assertFalse(draft['validation']['can_approve'])

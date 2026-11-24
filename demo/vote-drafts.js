@@ -38,7 +38,7 @@ const VoteDrafts = (() => {
         (reason === '50% 도달' && entry.title.includes('중간 집계')))))) return false;
     const { time, leader, body } = summary(frame);
     entries.push({
-      id, frame, status: 'pending', votes: leader.votes, time, body,
+      id, frame, reason, status: 'pending', votes: leader.votes, time, body,
       kind: reason === '선두 변경' ? 'followup' : 'count',
       title: '서울시장 모의 개표 ' + reason + ' · ' + frame.count_progress_pct.toFixed(1) + '%',
       source: '집계 근거 ' + frame.event_id + ' · 후보 근거 ' + leader.row_id
@@ -86,5 +86,13 @@ const VoteDrafts = (() => {
       .sort((a, b) => (b.decidedAt || 0) - (a.decidedAt || 0));
   }
 
-  return { approved, create, decide, list, markSeen, unread, valid };
+  function markPublished(id) {
+    const entry = list().find(item => item.id === id);
+    if (entry) {
+      entry.published = true;
+      save();
+    }
+  }
+
+  return { approved, create, decide, list, markPublished, markSeen, unread, valid };
 })();
