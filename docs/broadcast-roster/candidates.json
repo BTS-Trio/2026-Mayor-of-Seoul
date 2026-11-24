@@ -1,0 +1,48 @@
+{
+  "purpose": "교육용 모의 방송 후보자 명단",
+  "photo_kind": "synthetic",
+  "candidates": [
+    {
+      "candidate_id": "DEMO-C01",
+      "name": "강도윤",
+      "party": "새길미래당",
+      "status": "running",
+      "photo": "portraits/DEMO-C01.jpg"
+    },
+    {
+      "candidate_id": "DEMO-C02",
+      "name": "오세훈",
+      "party": "도시성장당",
+      "status": "running",
+      "photo": "portraits/DEMO-C02.jpg"
+    },
+    {
+      "candidate_id": "DEMO-C03",
+      "name": "서지안",
+      "party": "푸른생활당",
+      "status": "running",
+      "photo": "portraits/DEMO-C03.jpg"
+    },
+    {
+      "candidate_id": "DEMO-C04",
+      "name": "한서준",
+      "party": "시민연결당",
+      "status": "running",
+      "photo": "portraits/DEMO-C04.jpg"
+    },
+    {
+      "candidate_id": "DEMO-C05",
+      "name": "윤채린",
+      "party": "함께누리당",
+      "status": "running",
+      "photo": "portraits/DEMO-C05.jpg"
+    },
+    {
+      "candidate_id": "DEMO-C06",
+      "name": "백태오",
+      "party": "서울새봄당",
+      "status": "withdrawn",
+      "photo": "portraits/DEMO-C06.jpg"
+    }
+  ]
+}
