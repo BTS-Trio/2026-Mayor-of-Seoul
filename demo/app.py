@@ -29,6 +29,21 @@ def dashboard():
     return FileResponse(ROOT / "index.html")
 
 
+@app.get("/dashboard-feed.js", include_in_schema=False)
+def dashboard_script():
+    return FileResponse(ROOT / "dashboard-feed.js", media_type="application/javascript")
+
+
+@app.get("/vote-drafts.js", include_in_schema=False)
+def vote_drafts_script():
+    return FileResponse(ROOT / "vote-drafts.js", media_type="application/javascript")
+
+
+@app.get("/vote-review.html", include_in_schema=False)
+def vote_review():
+    return FileResponse(ROOT / "vote-review.html")
+
+
 @app.get("/offline-preview.html", include_in_schema=False)
 def count_details():
     return FileResponse(ROOT / "count-details.html")

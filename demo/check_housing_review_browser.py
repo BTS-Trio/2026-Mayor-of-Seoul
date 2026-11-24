@@ -81,7 +81,7 @@ with TemporaryDirectory(prefix="housing-review-browser-", ignore_cleanup_errors=
                         raise RuntimeError(result["exceptionDetails"])
                     return result["result"].get("value")
 
-                command("Page.navigate", url=f"http://127.0.0.1:{port}/")
+                command("Page.navigate", url=f"http://127.0.0.1:{port}/offline-preview.html")
                 until(lambda: js("document.querySelector('#housing-editor')?.hidden === false"))
                 js("document.querySelector('#housing-editor summary').click(); document.querySelector('a[href=\"/housing-review\"]').click()")
                 until(lambda: js("document.querySelector('#history li')?.textContent"))
