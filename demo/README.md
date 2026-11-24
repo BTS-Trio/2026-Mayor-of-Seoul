@@ -23,7 +23,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 
-http://127.0.0.1:8000/ 에서 개표·지도·예시 기사를 확인합니다. /housing-search는 BM25 공약 검색, /housing-review는 기사 검증·승인·반려 이력입니다. 실제 선관위·방송사 운영 서버와 연결하지 않습니다. 각 역할을 로컬 두 프로세스로 시연합니다.
+http://127.0.0.1:8000/ 에서 새 대시보드 디자인과 내장 개표 예시를 확인합니다. **개표 재생·상세 데이터·공약 검색** 링크를 열면 기존 개표 재생과 지도·예시 기사 기능을 사용할 수 있습니다. /housing-search는 BM25 공약 검색, /housing-review는 기사 검증·승인·반려 이력입니다. 각 서버 역할은 로컬 두 프로세스로 시연합니다.
 
 서버 없이 보려면 offline-preview.html 또는 최상위 Seoul-Election-Desk.html을 엽니다. 개표·예시 기사·저장 공약 기사를 확인할 수 있습니다. PDF를 열려면 함께 제공한 data/pdf 폴더도 유지해야 합니다. 서버 검증·영구 이력은 오프라인 파일에서 사용할 수 없습니다.
 

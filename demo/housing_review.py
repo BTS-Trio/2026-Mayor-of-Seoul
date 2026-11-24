@@ -83,6 +83,7 @@ def audit(connection, draft_id, event, reviewer, reason, payload, result):
 
 
 @router.get("/housing-review")
+@router.get("/housing-review.html", include_in_schema=False)
 def review_page():
     return FileResponse(ROOT / "housing-review.html")
 

@@ -24,11 +24,18 @@ app.include_router(housing_review_router)
 
 
 @app.get("/")
+@app.get("/index.html", include_in_schema=False)
 def dashboard():
     return FileResponse(ROOT / "index.html")
 
 
+@app.get("/offline-preview.html", include_in_schema=False)
+def count_details():
+    return FileResponse(ROOT / "count-details.html")
+
+
 @app.get("/housing-search")
+@app.get("/housing-search.html", include_in_schema=False)
 def housing_search_page():
     return FileResponse(ROOT / "housing-search.html")
 

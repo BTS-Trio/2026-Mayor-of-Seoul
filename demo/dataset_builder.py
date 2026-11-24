@@ -145,7 +145,7 @@ def make_pdfs(evidence):
             title=chunk['candidate']+' 주거 공약서',author='BTS-Trio 교육용',invariant=1).build(story,onFirstPage=footer)
 
 def make_offline(frames,article_rows):
-    template=(ROOT/'index.html').read_text(encoding='utf-8')
+    template=(ROOT/'count-details.html').read_text(encoding='utf-8')
     start=template.index('function start() {'); end=template.index("get('start').addEventListener",start)
     replay="""function start() {
   clearInterval(current); let position=0; render(offlineFrames[position]); set('status','교육용 개표 재생 중');
