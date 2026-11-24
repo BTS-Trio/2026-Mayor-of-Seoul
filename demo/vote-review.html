@@ -4,9 +4,17 @@
 :root{font-family:system-ui,sans-serif;color:#eaf3ff;background:#071025;color-scheme:dark}*{box-sizing:border-box}body{max-width:1040px;margin:32px auto;padding:0 22px}a{color:#70e4f6}header{display:flex;justify-content:space-between;gap:20px;align-items:center}h1{font-size:30px}section{border:1px solid #3c5675;border-radius:14px;padding:24px;background:#101c32;margin:18px 0}.muted{font-size:14px;color:#a8bad1}.draft{background:#f8edda;color:#171614;padding:22px;border-radius:10px;font-family:Batang,serif;line-height:1.8}.draft h2{font-size:27px;margin:0 0 10px}.draft p{font-size:20px}.source{font-family:system-ui;font-size:13px!important;overflow-wrap:anywhere}.actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}button{font:inherit;border:1px solid #65d7e8;background:#08c9dd;color:#021c25;font-weight:700;padding:10px 25px;border-radius:8px;cursor:pointer}button.secondary{background:#16243a;color:#ffe2a9;border-color:#e0b76c}button:disabled{opacity:.4;cursor:not-allowed}textarea{display:block;width:100%;font:inherit;background:#091327;color:#fff;border:1px solid #53708b;border-radius:8px;padding:12px;margin:8px 0 18px}.check{padding:14px;border-radius:8px;background:#1b2941}.check[data-outcome=pass]{background:#123c35;color:#a0f3d4}.check[data-outcome=fail]{background:#541e30;color:#ffd3db}dl{display:flex;flex-wrap:wrap;gap:15px 30px}dd{margin:4px 0}dt{font-size:13px;color:#a8bad1}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #ffe48c;outline-offset:4px}@media(max-width:600px){body{padding:0 12px}header{display:block}section{padding:16px}.draft h2{font-size:23px}.draft p{font-size:18px}}
 </style></head><body>
 <header><h1>개표 기사 초안 검토</h1><a id="home-link" href="index.html">홈페이지로 돌아가기</a></header>
-<p class="muted">자동 생성된 모의 개표 기사를 집계 근거와 대조하고 승인하거나 반려합니다. 초안과 결과는 현재 브라우저 탭에 저장됩니다.</p>
+<p class="muted">자동 생성된 모의 개표 기사를 집계 근거와 대조합니다. 승인하면 홈페이지 왼쪽의 모의 개표 기사가 갱신됩니다.</p>
 <section><label for="draft-list">검토할 기사</label> <select id="draft-list"></select></section><section><article class="draft"><h2 id="draft-title">기사 초안 대기</h2><p id="draft-body">홈페이지에서 모의 개표를 시작하면 자동 생성된 초안이 표시됩니다.</p><p id="draft-source" class="source">집계 근거 대기</p></article><dl><div><dt>기준 시각</dt><dd id="snapshot-time">—</dd></div><div><dt>후보 근거</dt><dd id="candidate-row">—</dd></div><div><dt>집계 득표수</dt><dd id="actual-votes">—</dd></div></dl></section>
 <section aria-labelledby="validation-heading"><h2 id="validation-heading">검증 결과</h2><label><input id="inject-error" type="checkbox" disabled> 득표수 오류 넣기 (+100표)</label><p id="review-check" class="check" role="status">검증 대기</p><label for="review-note">반려 사유</label><textarea id="review-note" rows="3" disabled placeholder="기사 속 득표수와 집계 근거가 일치하는지 확인해 주세요."></textarea><div class="actions"><button id="approve" disabled>승인</button><button id="reject" class="secondary" disabled>반려</button><a href="housing-review.html" id="housing-link">공약 기사 검증·승인 이력</a></div><p id="review-state" role="status">검토 대기</p></section>
+<section id="saved-articles" aria-labelledby="saved-heading">
+  <h2 id="saved-heading">저장된 기사</h2>
+  <h3>공약 기사</h3>
+  <p><a href="housing-search.html#saved-drafts">저장된 공약 기사 목록 열기</a></p>
+  <h3>개표 후속기사</h3>
+  <ul id="saved-followups"></ul>
+  <p id="empty-followups" class="muted">저장된 후속기사가 없습니다.</p>
+</section>
 <script src="vote-drafts.js"></script>
 <script>
 const get = id => document.getElementById(id);
@@ -45,9 +53,12 @@ function decide(status) {
     return;
   }
   const votes = selected.votes + (get('inject-error').checked ? 100 : 0);
-  if (!VoteDrafts.decide(selected, status, note, votes)) return;
+  if (!VoteDrafts.decide(selected.id, status, note, votes)) {
+    loadDrafts();
+    return;
+  }
   get('inject-error').checked = false;
-  refresh();
+  loadDrafts();
 }
 function loadDrafts() {
   const previous = picker.value;
@@ -55,6 +66,23 @@ function loadDrafts() {
   picker.replaceChildren(...[...drafts].reverse().map(entry => new Option(entry.title, entry.id)));
   if (drafts.some(entry => entry.id === previous)) picker.value = previous;
   picker.disabled = !drafts.length;
+  const followups = drafts.filter(entry => entry.kind === 'followup').reverse();
+  get('empty-followups').hidden = followups.length > 0;
+  get('saved-followups').replaceChildren(...followups.map(entry => {
+    const item = document.createElement('li');
+    const link = document.createElement('a');
+    const state = { pending: '검토 대기', approved: '승인', rejected: '반려' };
+    link.href = '#draft-list';
+    link.textContent = entry.title + ' · ' + state[entry.status];
+    link.addEventListener('click', () => {
+      picker.value = entry.id;
+      picker.dispatchEvent(new Event('change'));
+      picker.focus();
+    });
+    item.append(link);
+    return item;
+  }));
+  VoteDrafts.markSeen();
   refresh();
 }
 

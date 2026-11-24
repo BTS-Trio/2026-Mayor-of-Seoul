@@ -7,13 +7,20 @@ let halfway;
 function showDrafts(notice = '') {
   const entries = VoteDrafts.list();
   const pending = entries.filter(entry => entry.status === 'pending').length;
-  const latest = entries.at(-1);
-  set('arrival-count', '검토 대기 ' + pending + '건');
-  set('arrival-description', notice || (latest
-    ? '생성된 개표 기사와 검토 결과를 확인할 수 있습니다.'
+  const unread = VoteDrafts.unread();
+  const latest = entries.filter(entry => entry.status === 'approved')
+    .sort((a, b) => (b.decidedAt || 0) - (a.decidedAt || 0))[0];
+  set('arrival-count', unread ? '새 초안 도착 ' + unread + '건' : '검토 대기 ' + pending + '건');
+  set('arrival-description', notice || (entries.length
+    ? '검토 대기 ' + pending + '건 · 생성된 기사와 검토 결과를 확인할 수 있습니다.'
     : '집계가 진행되면 개표 기사 초안이 자동으로 생성됩니다.'));
-  get('review-link').setAttribute('aria-disabled', String(!latest));
-  if (!latest) return;
+  if (!latest) {
+    set('draft-title', '서울시장 모의 개표');
+    set('draft-body', '초안 검토에서 기사를 승인하면 여기에 표시됩니다.');
+    set('draft-source', '승인된 기사 대기');
+    set('paper-time', '—');
+    return;
+  }
   set('draft-title', latest.title);
   set('draft-body', latest.body);
   set('draft-source', latest.source);
@@ -83,6 +90,7 @@ function startReplay() {
 get('replay-feed').addEventListener('click', startReplay);
 get('build-draft').addEventListener('click', () => generateDraft('수동 생성'));
 window.addEventListener('pageshow', () => showDrafts());
+window.addEventListener('storage', () => showDrafts());
 drawTrend();
 showDrafts();
 if (offline) {

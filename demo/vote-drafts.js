@@ -1,14 +1,17 @@
 const VoteDrafts = (() => {
   const key = 'seoul-vote-drafts';
+  const seenKey = key + ':seen';
   const count = new Intl.NumberFormat('ko-KR');
   const clock = new Intl.DateTimeFormat('ko-KR', {
     dateStyle: 'short', timeStyle: 'medium', timeZone: 'Asia/Seoul'
   });
   let entries = [];
-  try { entries = JSON.parse(sessionStorage.getItem(key) || '[]'); } catch {}
+  try { entries = JSON.parse(localStorage.getItem(key) || sessionStorage.getItem(key) || '[]'); } catch {}
+  let seen = [];
+  try { seen = JSON.parse(localStorage.getItem(seenKey) || '[]'); } catch {}
 
   function save() {
-    try { sessionStorage.setItem(key, JSON.stringify(entries)); } catch {}
+    try { localStorage.setItem(key, JSON.stringify(entries)); } catch {}
   }
 
   function summary(frame) {
@@ -27,11 +30,13 @@ const VoteDrafts = (() => {
   }
 
   function create(frame, reason, mode) {
+    list();
     const id = mode + ':' + frame.event_id;
     if (entries.some(entry => entry.id === id)) return false;
     const { time, leader, body } = summary(frame);
     entries.push({
       id, frame, status: 'pending', votes: leader.votes, time, body,
+      kind: reason === '선두 변경' ? 'followup' : 'count',
       title: '서울시장 모의 개표 ' + reason + ' · ' + frame.count_progress_pct.toFixed(1) + '%',
       source: '집계 근거 ' + frame.event_id + ' · 후보 근거 ' + leader.row_id
     });
@@ -43,23 +48,35 @@ const VoteDrafts = (() => {
     return votes === summary(entry.frame).leader.votes;
   }
 
-  function decide(entry, status, note, votes) {
-    if (entry.status !== 'pending') return false;
+  function decide(id, status, note, votes) {
+    const entry = list().find(item => item.id === id);
+    if (entry?.status !== 'pending') return false;
     if (status === 'approved' && !valid(entry, votes)) return false;
     if (status === 'rejected' && !note) return false;
     entry.status = status;
     entry.note = note;
+    entry.decidedAt = Date.now();
     save();
     return true;
   }
 
   function list() {
     try {
-      const stored = sessionStorage.getItem(key);
+      const stored = localStorage.getItem(key);
       if (stored) entries = JSON.parse(stored);
     } catch {}
     return entries;
   }
 
-  return { create, decide, list, valid };
+  function unread() {
+    try { seen = JSON.parse(localStorage.getItem(seenKey) || '[]'); } catch {}
+    return list().filter(entry => !seen.includes(entry.id)).length;
+  }
+
+  function markSeen() {
+    seen = list().map(entry => entry.id);
+    try { localStorage.setItem(seenKey, JSON.stringify(seen)); } catch {}
+  }
+
+  return { create, decide, list, markSeen, unread, valid };
 })();
