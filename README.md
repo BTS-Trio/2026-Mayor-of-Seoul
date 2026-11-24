@@ -6,6 +6,8 @@
 
 구현 기준은 [PR #7](https://github.com/BTS-Trio/2026-Mayor-of-Seoul/pull/7)입니다. 화면 이미지는 이 브랜치를 로컬 서버에서 실행하고 Chrome에서 직접 캡처했습니다.
 
+> [모의 개표방송 후보자 명단·가상 정당·사진](docs/broadcast-roster/README.md)은 방송 영상의 표기 기준입니다. 기존 공식 집계 재생 자료는 실제 선거 자료의 표기를 따릅니다.
+
 ## 목차
 
 - [1. 기획서](#1-기획서)
