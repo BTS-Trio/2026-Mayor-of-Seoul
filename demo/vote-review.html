@@ -9,6 +9,9 @@
 <section aria-labelledby="validation-heading"><h2 id="validation-heading">검증 결과</h2><label><input id="inject-error" type="checkbox" disabled> 득표수 오류 넣기 (+100표)</label><p id="review-check" class="check" role="status">검증 대기</p><label for="review-note">반려 사유</label><textarea id="review-note" rows="3" disabled placeholder="기사 속 득표수와 집계 근거가 일치하는지 확인해 주세요."></textarea><div class="actions"><button id="approve" disabled>승인</button><button id="reject" class="secondary" disabled>반려</button><a href="housing-review.html" id="housing-link">공약 기사 검증·승인 이력</a></div><p id="review-state" role="status">검토 대기</p></section>
 <section id="saved-articles" aria-labelledby="saved-heading">
   <h2 id="saved-heading">저장된 기사</h2>
+  <h3 id="previous-articles">이전 모의 개표 기사</h3>
+  <ul id="saved-previous"></ul>
+  <p id="empty-previous" class="muted">홈에서 교체된 승인 기사가 여기에 표시됩니다.</p>
   <h3>공약 기사</h3>
   <p><a href="housing-search.html#saved-drafts">저장된 공약 기사 목록 열기</a></p>
   <h3>개표 후속기사</h3>
@@ -66,9 +69,15 @@ function loadDrafts() {
   picker.replaceChildren(...[...drafts].reverse().map(entry => new Option(entry.title, entry.id)));
   if (drafts.some(entry => entry.id === previous)) picker.value = previous;
   picker.disabled = !drafts.length;
-  const followups = drafts.filter(entry => entry.kind === 'followup').reverse();
-  get('empty-followups').hidden = followups.length > 0;
-  get('saved-followups').replaceChildren(...followups.map(entry => {
+  renderArchive('previous', VoteDrafts.approved(drafts).slice(1));
+  renderArchive('followups', drafts.filter(entry => entry.kind === 'followup').reverse());
+  VoteDrafts.markSeen();
+  refresh();
+}
+
+function renderArchive(name, entries) {
+  get('empty-' + name).hidden = entries.length > 0;
+  get('saved-' + name).replaceChildren(...entries.map(entry => {
     const item = document.createElement('li');
     const link = document.createElement('a');
     const state = { pending: '검토 대기', approved: '승인', rejected: '반려' };
@@ -82,8 +91,6 @@ function loadDrafts() {
     item.append(link);
     return item;
   }));
-  VoteDrafts.markSeen();
-  refresh();
 }
 
 picker.addEventListener('change', () => {

@@ -81,5 +81,10 @@ const VoteDrafts = (() => {
     try { localStorage.setItem(seenKey, JSON.stringify(seen)); } catch {}
   }
 
-  return { create, decide, list, markSeen, unread, valid };
+  function approved(entries = list()) {
+    return entries.filter(entry => entry.status === 'approved')
+      .sort((a, b) => (b.decidedAt || 0) - (a.decidedAt || 0));
+  }
+
+  return { approved, create, decide, list, markSeen, unread, valid };
 })();

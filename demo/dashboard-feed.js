@@ -8,8 +8,7 @@ function showDrafts(notice = '') {
   const entries = VoteDrafts.list();
   const pending = entries.filter(entry => entry.status === 'pending').length;
   const unread = VoteDrafts.unread();
-  const latest = entries.filter(entry => entry.status === 'approved')
-    .sort((a, b) => (b.decidedAt || 0) - (a.decidedAt || 0))[0];
+  const [latest] = VoteDrafts.approved(entries);
   set('arrival-count', unread ? '새 초안 도착 ' + unread + '건' : '검토 대기 ' + pending + '건');
   set('arrival-description', notice || (entries.length
     ? '검토 대기 ' + pending + '건 · 생성된 기사와 검토 결과를 확인할 수 있습니다.'
