@@ -31,8 +31,11 @@ const VoteDrafts = (() => {
 
   function create(frame, reason, mode) {
     list();
-    const id = mode + ':' + frame.event_id;
-    if (entries.some(entry => entry.id === id)) return false;
+    const eventKey = mode + ':' + frame.event_id;
+    const id = eventKey + ':' + reason;
+    if (entries.some(entry => entry.id === id ||
+      (entry.id === eventKey && (entry.title.includes(reason) ||
+        (reason === '50% 도달' && entry.title.includes('중간 집계')))))) return false;
     const { time, leader, body } = summary(frame);
     entries.push({
       id, frame, status: 'pending', votes: leader.votes, time, body,

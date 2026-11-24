@@ -2,7 +2,7 @@ const offline = location.protocol === 'file:';
 let activeSocket;
 let replayTimer;
 let previousLeader;
-let halfway;
+let nextMilestone;
 
 function showDrafts(notice = '') {
   const entries = VoteDrafts.list();
@@ -39,19 +39,20 @@ function receiveFrame(frame) {
   if (!frame.counted_ballots) return;
   const [first, second] = [...frame.candidates].sort((a, b) => b.votes - a.votes);
   const leader = first.votes > second.votes ? first.candidate_id : null;
-  const crossedHalfway = !halfway && frame.count_progress_pct >= 50;
   const changedLeader = leader && previousLeader && leader !== previousLeader;
+  while (nextMilestone < 100 && frame.count_progress_pct >= nextMilestone) {
+    generateDraft(nextMilestone + '% 도달');
+    nextMilestone += 10;
+  }
+  if (changedLeader) generateDraft('선두 변경');
   if (frame.complete) generateDraft('최종 집계');
-  else if (crossedHalfway) generateDraft('중간 집계');
-  else if (changedLeader) generateDraft('선두 변경');
-  if (crossedHalfway) halfway = true;
   if (leader) previousLeader = leader;
 }
 
 function startReplay() {
   designFrames.length = 0;
   previousLeader = null;
-  halfway = false;
+  nextMilestone = 10;
   if (offline) {
     clearInterval(replayTimer);
     let position = 0;
