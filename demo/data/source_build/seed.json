@@ -3,7 +3,7 @@
     {
       "candidate_id": "DEMO-C01",
       "name": "강도윤",
-      "party": "가상 생활당",
+      "party": "새길미래당",
       "data_kind": "synthetic",
       "candidate_withdrawn": false,
       "status": "running",
@@ -15,19 +15,19 @@
     {
       "candidate_id": "DEMO-C02",
       "name": "오세훈",
-      "party": "국민의힘",
+      "party": "도시성장당",
       "data_kind": "collected_real",
       "candidate_withdrawn": false,
       "status": "running",
       "withdrawn_at": null,
-      "profile": "기존 수집 후보명·정당 유지. 약력은 추가하지 않음.",
+      "profile": "교육용 방송의 정당명과 사진은 가상 설정이며 기존 수집 주거 공약 일부만 근거로 사용합니다.",
       "final_votes": 450000,
       "votes_are_synthetic": true
     },
     {
       "candidate_id": "DEMO-C03",
       "name": "서지안",
-      "party": "가상 미래당",
+      "party": "푸른생활당",
       "data_kind": "synthetic",
       "candidate_withdrawn": false,
       "status": "running",
@@ -39,7 +39,7 @@
     {
       "candidate_id": "DEMO-C04",
       "name": "한서준",
-      "party": "가상 돌봄당",
+      "party": "시민연결당",
       "data_kind": "synthetic",
       "candidate_withdrawn": false,
       "status": "running",
@@ -51,7 +51,7 @@
     {
       "candidate_id": "DEMO-C05",
       "name": "윤채린",
-      "party": "가상 녹색당",
+      "party": "함께누리당",
       "data_kind": "synthetic",
       "candidate_withdrawn": false,
       "status": "running",
@@ -63,7 +63,7 @@
     {
       "candidate_id": "DEMO-C06",
       "name": "백태오",
-      "party": "가상 참여당",
+      "party": "서울새봄당",
       "data_kind": "synthetic",
       "candidate_withdrawn": true,
       "status": "withdrawn",
@@ -374,5 +374,14 @@
       "citation": "실제 공약의 원래 PDF 인용 유지. 가상 공약에는 PDF 쪽수나 선관위 링크를 붙이지 않음.",
       "verification": "가상 자료는 내부 일관성만 검증 가능. 실제 사실성·실행 가능성 검증과 구분."
     }
-  }
+  },
+  "portraits": {
+    "DEMO-C01": "docs/broadcast-roster/portraits/DEMO-C01.jpg",
+    "DEMO-C02": "docs/broadcast-roster/portraits/DEMO-C02.jpg",
+    "DEMO-C03": "docs/broadcast-roster/portraits/DEMO-C03.jpg",
+    "DEMO-C04": "docs/broadcast-roster/portraits/DEMO-C04.jpg",
+    "DEMO-C05": "docs/broadcast-roster/portraits/DEMO-C05.jpg",
+    "DEMO-C06": "docs/broadcast-roster/portraits/DEMO-C06.jpg"
+  },
+  "portrait_note": "교육용 방송 인물 이미지 및 정당명은 가상 설정입니다. 사진 경로는 저장소 루트 기준입니다."
 }

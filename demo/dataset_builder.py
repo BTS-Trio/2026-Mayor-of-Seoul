@@ -170,8 +170,10 @@ def make_offline(frames,article_rows):
     (ROOT.parent/'Seoul-Election-Desk.html').write_text(preview.replace('data/pdf/','demo/data/pdf/').replace('data/candidates.json','demo/data/candidates.json'),encoding='utf-8')
 
 def main():
-    candidates=seed()['candidates']; evidence=corpus(); frames=list(generate()); article_rows=article(evidence)
-    write_json(DATA/'candidates.json',{'label':LABEL,'candidates':candidates})
+    source = seed()
+    candidates=source['candidates']; evidence=corpus(); frames=list(generate()); article_rows=article(evidence)
+    write_json(DATA/'candidates.json',{'label':LABEL,'candidates':candidates,
+        'portraits':source['portraits'],'portrait_note':source['portrait_note']})
     write_json(DATA/'rag/housing_evidence.json',evidence); write_json(DATA/'rag/housing_article.json',article_rows)
     write_json(DATA/'seoul_final_totals.json',{'mode':'synthetic','label':LABEL,'election_date':'2026-06-03',
         'region':'서울특별시','race':'가상 시장선거','registered_voters':2000000,'total_ballots':1010000,
