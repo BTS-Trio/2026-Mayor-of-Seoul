@@ -49,7 +49,6 @@ function receiveFrame(frame) {
 }
 
 function startReplay() {
-  designFrames.length = 0;
   previousLeader = null;
   nextMilestone = 10;
   if (offline) {
@@ -91,7 +90,6 @@ get('replay-feed').addEventListener('click', startReplay);
 get('build-draft').addEventListener('click', () => generateDraft('수동 생성'));
 window.addEventListener('pageshow', () => showDrafts());
 window.addEventListener('storage', () => showDrafts());
-drawTrend();
 showDrafts();
 if (offline) {
   const index = offlineFrames.findIndex(frame => frame.count_progress_pct >= 68.4);
