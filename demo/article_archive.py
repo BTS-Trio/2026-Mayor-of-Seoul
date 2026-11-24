@@ -2,13 +2,13 @@
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Literal
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from housing_review import storage
+from review_access import require_reviewer
 
 ROOT = Path(__file__).resolve().parent
 router = APIRouter()
@@ -76,7 +76,7 @@ def articles_page():
     return FileResponse(ROOT / "articles.html")
 
 
-@router.post("/api/articles/vote")
+@router.post("/api/articles/vote", dependencies=[Depends(require_reviewer)])
 def publish_vote_article(request: VotePublication):
     article = vote_article(request)
     with storage() as db:

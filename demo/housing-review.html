@@ -34,6 +34,7 @@
     <ol id="sentences"></ol>
     <label for="reviewer">검토자 이름</label>
     <input id="reviewer" maxlength="80">
+    <p><label for="review-key">검토 키</label> <input id="review-key" type="password" autocomplete="off"></p>
     <p><label for="reason">처리 사유 (반려 시 필수)</label></p>
     <textarea id="reason" maxlength="1000" rows="2"></textarea>
     <div>
@@ -56,7 +57,10 @@ let draft;
 let busy = false;
 async function request(path, body) {
   const response = await fetch(api + path, body ? {
-    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+    method: 'POST', headers: {
+      'Content-Type': 'application/json',
+      ...(path.endsWith('/decision') ? {'X-Reviewer-Key': get('review-key').value.trim()} : {})
+    }, body: JSON.stringify(body)
   } : {cache: 'no-store'});
   const data = await response.json();
   if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : data.detail?.message || '서버가 요청을 거절했습니다.');

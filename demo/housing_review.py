@@ -7,13 +7,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import Literal
 from article_validation import validate
 from table_data import initialize
 from article_generation import generate_article, GenerationError
+from review_access import require_reviewer
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data" / "rag"
@@ -152,7 +153,7 @@ def get_saved_draft(draft_id: str):
     return {'id':draft_id,**payload,'status':row['status'],'validation':validate(payload)}
 
 
-@router.post("/api/housing-review/drafts/{draft_id}/decision")
+@router.post("/api/housing-review/drafts/{draft_id}/decision", dependencies=[Depends(require_reviewer)])
 def decide(draft_id: str, request: Decision):
     reviewer, reason = request.reviewer.strip(), request.reason.strip()
     if not reviewer or (request.action == "reject" and not reason):

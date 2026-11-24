@@ -17,9 +17,10 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m uvicorn election_source:app --host 127.0.0.1 --port 8001
 ```
 
-터미널 2:
+터미널 2에서 검토 키를 정합니다. 개표 기사 공개 또는 공약 기사 승인·반려 화면에 같은 값을 입력합니다.
 
 ```powershell
+$env:ELECTION_REVIEW_KEY = [System.Net.NetworkCredential]::new("", (Read-Host "방송 서버 검토 키" -AsSecureString)).Password
 .\.venv\Scripts\python.exe -m uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 

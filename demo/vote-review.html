@@ -6,7 +6,7 @@
 <header><h1>개표 기사 초안 검토</h1><a id="home-link" href="index.html">홈페이지로 돌아가기</a></header>
 <p class="muted">자동 생성된 모의 개표 기사를 집계 근거와 대조합니다. 승인하면 홈페이지 왼쪽의 모의 개표 기사가 갱신되고 서버에서 공개 기사로 저장됩니다.</p>
 <section><label for="draft-list">검토할 기사</label> <select id="draft-list"></select></section><section><article class="draft"><h2 id="draft-title">기사 초안 대기</h2><p id="draft-body">홈페이지에서 모의 개표를 시작하면 자동 생성된 초안이 표시됩니다.</p><p id="draft-source" class="source">집계 근거 대기</p></article><dl><div><dt>기준 시각</dt><dd id="snapshot-time">—</dd></div><div><dt>후보 근거</dt><dd id="candidate-row">—</dd></div><div><dt>집계 득표수</dt><dd id="actual-votes">—</dd></div></dl></section>
-<section aria-labelledby="validation-heading"><h2 id="validation-heading">검증 결과</h2><label><input id="inject-error" type="checkbox" disabled> 득표수 오류 넣기 (+100표)</label><p id="review-check" class="check" role="status">검증 대기</p><label for="review-note">반려 사유</label><textarea id="review-note" rows="3" disabled placeholder="기사 속 득표수와 집계 근거가 일치하는지 확인해 주세요."></textarea><div class="actions"><button id="approve" disabled>승인</button><button id="reject" class="secondary" disabled>반려</button><a href="housing-review.html" id="housing-link">공약 기사 검증·승인 이력</a></div><p id="review-state" role="status">검토 대기</p></section>
+<section aria-labelledby="validation-heading"><h2 id="validation-heading">검증 결과</h2><label><input id="inject-error" type="checkbox" disabled> 득표수 오류 넣기 (+100표)</label><p id="review-check" class="check" role="status">검증 대기</p><label for="review-note">반려 사유</label><textarea id="review-note" rows="3" disabled placeholder="기사 속 득표수와 집계 근거가 일치하는지 확인해 주세요."></textarea><p id="review-key-row"><label for="review-key">검토 키</label> <input id="review-key" type="password" autocomplete="off"></p><div class="actions"><button id="approve" disabled>승인</button><button id="reject" class="secondary" disabled>반려</button><a href="housing-review.html" id="housing-link">공약 기사 검증·승인 이력</a></div><p id="review-state" role="status">검토 대기</p></section>
 <section><h2>기사 모아보기</h2><p><a href="articles.html">공개 기사 페이지 열기</a></p><button id="publish-existing" hidden>이 승인 기사 공개하기</button></section>
 <script src="vote-drafts.js"></script>
 <script>
@@ -42,13 +42,17 @@ function canPublish(entry) {
   return location.protocol !== 'file:' && entry.id.startsWith('feed:');
 }
 async function publish(entry) {
+  const key = get('review-key').value.trim();
+  if (!key) throw new Error('검토 키를 입력해 주세요.');
   const reason = entry.reason || entry.title.split(' 모의 개표 ')[1]?.split(' · ')[0];
   const response = await fetch('/api/articles/vote', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Reviewer-Key': key },
     body: JSON.stringify({ event_id: entry.frame.event_id, reason, votes: entry.votes })
   });
-  if (!response.ok) throw new Error('Publication failed');
+  if (response.status === 403) throw new Error('검토 키를 확인해 주세요.');
+  if (response.status === 503) throw new Error('서버에 검토 키를 설정해 주세요.');
+  if (!response.ok) throw new Error('공개 저장에 실패했습니다.');
   VoteDrafts.markPublished(entry.id);
 }
 get('publish-existing').addEventListener('click', async () => {
@@ -58,8 +62,8 @@ get('publish-existing').addEventListener('click', async () => {
     await publish(selected);
     loadDrafts();
     set('review-state', '공개 기사 목록에 저장했습니다.');
-  } catch {
-    set('review-state', '공개 저장에 실패했습니다. 다시 시도해 주세요.');
+  } catch (error) {
+    set('review-state', error.message);
   } finally {
     button.disabled = false;
   }
@@ -82,10 +86,10 @@ async function decide(status) {
     picker.disabled = true;
     try {
       await publish(entry);
-    } catch {
+    } catch (error) {
       picker.disabled = false;
       refresh();
-      set('review-state', '공개 저장에 실패했습니다. 다시 승인해 주세요.');
+      set('review-state', error.message);
       return;
     }
   }
@@ -111,6 +115,7 @@ picker.addEventListener('change', () => {
   get('review-note').value = '';
   refresh();
 });
+get('review-key-row').hidden = location.protocol === 'file:';
 get('inject-error').addEventListener('change', refresh);
 get('approve').addEventListener('click', () => decide('approved'));
 get('reject').addEventListener('click', () => decide('rejected'));

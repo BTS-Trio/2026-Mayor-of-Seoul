@@ -32,6 +32,7 @@ with TemporaryDirectory(prefix="housing-review-browser-", ignore_cleanup_errors=
     directory = Path(work)
     db = directory / "housing-review.sqlite3"
     os.environ["HOUSING_REVIEW_DB"] = str(db)
+    os.environ["ELECTION_REVIEW_KEY"] = "browser-test-key"
     listener = socket.socket()
     listener.bind(("127.0.0.1", 0))
     port = listener.getsockname()[1]
@@ -85,7 +86,7 @@ with TemporaryDirectory(prefix="housing-review-browser-", ignore_cleanup_errors=
                 until(lambda: js("document.querySelector('#housing-editor')?.hidden === false"))
                 js("document.querySelector('#housing-editor summary').click(); document.querySelector('a[href=\"/housing-review\"]').click()")
                 until(lambda: js("document.querySelector('#history li')?.textContent"))
-                js("get('reviewer').value='Browser QA'; get('run').click()")
+                js("get('reviewer').value='Browser QA'; get('review-key').value='browser-test-key'; get('run').click()")
                 until(lambda: js("get('validation').textContent && !get('run').disabled"))
                 assert js("!get('approve').disabled"), js("get('validation').textContent")
                 js("get('approve').click()")
@@ -127,7 +128,7 @@ with TemporaryDirectory(prefix="housing-review-browser-", ignore_cleanup_errors=
                 command('Page.navigate',url=f'http://127.0.0.1:{port}'+review_url)
                 until(lambda: js("document.querySelector('#fixture-controls')?.hidden && !document.querySelector('#approve').disabled"))
                 assert js("document.querySelector('#review-question').textContent.includes("+json.dumps(question)+")")
-                js("get('reviewer').value='Generated Browser QA';get('approve').click()")
+                js("get('reviewer').value='Generated Browser QA'; get('review-key').value='browser-test-key'; get('approve').click()")
                 until(lambda: js("get('message').textContent.includes('승인 완료')"))
                 command('Page.reload',ignoreCache=True)
                 until(lambda: js("document.querySelector('#message')?.textContent.includes('저장 상태: 승인')"))

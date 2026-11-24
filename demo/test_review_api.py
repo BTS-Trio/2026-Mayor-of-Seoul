@@ -13,8 +13,8 @@ class ReviewApiTest(unittest.TestCase):
     def setUp(self):
         self.work=tempfile.TemporaryDirectory()
         self.db=str(Path(self.work.name)/'test.sqlite3')
-        self.env=patch.dict(os.environ,{'HOUSING_REVIEW_DB':self.db}); self.env.start()
-        self.client=TestClient(app)
+        self.env=patch.dict(os.environ,{'HOUSING_REVIEW_DB':self.db, 'ELECTION_REVIEW_KEY':'test-review-key'}); self.env.start()
+        self.client=TestClient(app, headers={'X-Reviewer-Key':'test-review-key'})
     def tearDown(self):
         self.client.close(); self.env.stop(); self.work.cleanup()
 
@@ -66,6 +66,21 @@ class ReviewApiTest(unittest.TestCase):
         articles = self.client.get('/api/articles').json()['vote']
         self.assertEqual(len(articles), 1)
         self.assertIn(frame['event_id'], articles[0]['source'])
+
+    def test_article_changes_require_review_key_but_public_reads_do_not(self):
+        draft = self.create()
+        vote = {'event_id': 'DEMO-SNAPSHOT-030', 'reason': '최종 집계', 'votes': 450000}
+        decision = {'action': 'approve', 'reviewer': '테스트 검토자'}
+        decision_url = f"/api/housing-review/drafts/{draft['id']}/decision"
+        with TestClient(app) as reader:
+            for path, payload in [('/api/articles/vote', vote), (decision_url, decision)]:
+                self.assertEqual(reader.post(path, json=payload).status_code, 403)
+                self.assertEqual(reader.post(path, json=payload, headers={'X-Reviewer-Key':'wrong'}).status_code, 403)
+                with patch.dict(os.environ, {'ELECTION_REVIEW_KEY': ''}):
+                    self.assertEqual(self.client.post(path, json=payload).status_code, 503)
+            self.assertEqual(reader.get('/api/articles').json(), {'vote': [], 'housing': []})
+            self.assertEqual(reader.get('/articles').status_code, 200)
+        self.assertEqual(self.client.get(f"/api/housing-review/drafts/{draft['id']}").json()['status'], 'pending')
 
     def test_missing_source_blocks_approval_and_rejection_requires_reason(self):
         draft=self.create('missing_source'); self.assertFalse(draft['validation']['can_approve'])

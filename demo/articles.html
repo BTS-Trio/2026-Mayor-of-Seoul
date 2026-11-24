@@ -33,6 +33,7 @@
     <nav class="sidebar" aria-label="기사 분류">
       <a href="index.html">← 대시보드</a>
       <button type="button" data-filter="all" aria-pressed="true">전체</button>
+      <button type="button" data-filter="previous" aria-pressed="false">이전 개표 기사</button>
       <button type="button" data-filter="count" aria-pressed="false">모의 개표</button>
       <button type="button" data-filter="followup" aria-pressed="false">후속기사</button>
       <button type="button" data-filter="housing" aria-pressed="false">공약 기사</button>
@@ -73,7 +74,8 @@
     }
 
     function renderGrid(filter) {
-      const items = articles.filter(article => filter === 'all' || article.kind === filter);
+      const items = articles.filter(article => filter === 'all' || article.kind === filter ||
+        (filter === 'previous' && (article.kind === 'count' || article.kind === 'followup')));
       for (const button of filters) button.setAttribute('aria-pressed', String(button.dataset.filter === filter));
       get('archive-status').textContent = items.length ? '' : '공개된 기사가 없습니다.';
       get('article-grid').replaceChildren(...items.map(article => {
@@ -121,7 +123,7 @@
           return;
         }
       }
-      renderGrid(location.hash === '#previous-articles' ? 'count' : 'all');
+      renderGrid(location.hash === '#previous-articles' ? 'previous' : 'all');
       const requested = new URLSearchParams(location.search).get('article');
       const article = articles.find(item => item.id === requested);
       if (article) openArticle(article);
