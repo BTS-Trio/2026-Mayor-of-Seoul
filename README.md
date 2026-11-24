@@ -163,7 +163,7 @@ WBS는 일을 작은 단위로 나눠 담당과 순서를 정리한 표입니다
 | UI-01 | 모의 개표 홈·상세 | `/`, `/offline-preview.html` | 개표율·지도·구별 득표 상세·알림 확인. 상세 화면에서 개표 단위와 후보별 표 조회 |
 | UI-02 | 주거 공약 검색 | `/housing-search` | 질문·후보로 검색하고 초안 생성 |
 | UI-03 | 공약 기사·문장별 출처 | `/housing-search`, `/housing-review`의 기사 영역 | 저장 기사 본문과 문장별 PDF 근거 확인 |
-| UI-04 | 오프라인 개표 검토 예시 | `Seoul-Election-Desk.html` 또는 `demo/offline-preview.html` 파일 | 예시 기사 작성·오류 차단·승인·반려 시연 |
+| UI-04 | 개표 상세·검토 예시 | 서버의 `/offline-preview.html` (`demo/count-details.html`) | 예시 기사 작성·오류 차단·승인·반려 시연 |
 | UI-05 | 공약 기사 검토 | `/housing-review` | 서버 검증, 승인·반려, 저장 이력 조회 |
 | UI-06 | 개표 기사 검토 | `/vote-review.html` | 자동 생성 초안 선택, 숫자 대조, 승인·공개 또는 반려 |
 | UI-07 | 기사 모아보기 | `/articles` | 승인 기사 분류·열람, 기사 주소 공유 |
@@ -352,7 +352,7 @@ Windows에서 Python 자동 검사와 Chrome 실행 검사를 진행했습니다
 
 ### 처음 한 번 준비하기
 
-저장소에서 PR #7 브랜치를 내려받고 **저장소 최상위 폴더**에서 PowerShell을 엽니다.
+저장소의 최신 `main` 브랜치를 내려받고 **저장소 최상위 폴더**에서 PowerShell을 엽니다.
 
 ```powershell
 python -m venv .venv
@@ -406,6 +406,6 @@ $env:ELECTION_REVIEW_KEY = [System.Net.NetworkCredential]::new("", (Read-Host "�
 | 기사 모아보기에 카드가 없어요. | 개표가 충분히 진행된 뒤 검토 화면에서 기사를 승인하거나, 공약 기사를 생성한 뒤 승인합니다. |
 | 예전에 승인한 개표 기사가 다른 브라우저에서 안 보여요. | 예전 버전에서 브라우저에만 저장했다면 기존 브라우저의 검토 화면에서 기사를 선택하고 **이 승인 기사 공개하기**를 누릅니다. |
 | 팀원에게 보낸 링크가 열리지 않아요. | 공유한 URL이 `127.0.0.1`인지 확인합니다. 두 사람 모두 접근할 수 있는 시연 서버가 필요합니다. |
-| 서버 실행 없이 먼저 화면을 볼 수 있나요? | `demo/index.html` 또는 `demo/offline-preview.html`을 엽니다. 예시 집계 화면을 볼 수 있습니다. 공약 기사 서버 검토 및 팀원과 공개 기사 공유에는 서버가 필요합니다. |
+| 서버 실행 없이 먼저 화면을 볼 수 있나요? | `demo/index.html`을 열면 홈의 기본 화면을 볼 수 있습니다. 개표 피드·상세 데이터·기사 검토·공개 기사 공유는 8001·8000 서버를 실행한 뒤 사용합니다. 독립 오프라인 예시 HTML은 제거했습니다. |
 
 추가 자료는 [데이터와 PDF 연결 안내](demo/docs/dummy-data-integration.md), [질문 기반 공약 초안 설명](demo/docs/article-generation.md), [시연 실행 안내](demo/README.md)에서 확인할 수 있습니다.

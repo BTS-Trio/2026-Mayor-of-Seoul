@@ -1,5 +1,4 @@
 """Build one consistent educational dataset for the team demo (Python 3.10+)."""
-import base64
 import copy
 import csv
 import hashlib
@@ -144,31 +143,6 @@ def make_pdfs(evidence):
         SimpleDocTemplate(str(path),pagesize=A4,rightMargin=48,leftMargin=48,topMargin=50,bottomMargin=55,
             title=chunk['candidate']+' 주거 공약서',author='BTS-Trio 교육용',invariant=1).build(story,onFirstPage=footer)
 
-def make_offline(frames,article_rows):
-    template=(ROOT/'count-details.html').read_text(encoding='utf-8')
-    start=template.index('function start() {'); end=template.index("get('start').addEventListener",start)
-    replay="""function start() {
-  clearInterval(current); let position=0; render(offlineFrames[position]); set('status','교육용 개표 재생 중');
-  current=setInterval(()=>{const frame=offlineFrames[++position]; render(frame);
-    if(frame.complete){clearInterval(current);current=undefined;set('status','가상 개표 완료');}},2000);
-}
-"""
-    preview=(template[:start]+replay+template[end:]).replace('let current;',
-        'const offlineFrames = '+json.dumps(frames,ensure_ascii=False).replace('<','\\u003c')+';\nlet current;')
-    from article_data import draft_response
-    offline_draft=draft_response()
-    for sentence in offline_draft['sentences']:
-        for citation in sentence['citations']:
-            if citation['url'].startswith('/sources/'):
-                citation['url']='data/pdf/'+citation['url'].split('/')[-1]
-            elif citation['url']=='/api/candidates':
-                citation['url']='data/candidates.json'
-    preview=preview.replace('let current;', 'const offlineHousingDraft = '+json.dumps(offline_draft,ensure_ascii=False).replace('<','\\u003c')+';\nlet current;')
-    for filename in ('election-background.jpg','embic-election.jpg'):
-        preview=preview.replace(f'src="/{filename}"','src="data:image/jpeg;base64,'+base64.b64encode((ROOT/filename).read_bytes()).decode('ascii')+'"')
-    (ROOT/'offline-preview.html').write_text(preview,encoding='utf-8')
-    (ROOT.parent/'Seoul-Election-Desk.html').write_text(preview.replace('data/pdf/','demo/data/pdf/').replace('data/candidates.json','demo/data/candidates.json'),encoding='utf-8')
-
 def main():
     source = seed()
     candidates=source['candidates']; evidence=corpus(); frames=list(generate()); article_rows=article(evidence)
@@ -196,7 +170,7 @@ def main():
     write_json(DATA/'rag/housing_search_example.json',{'question':evidence['question'],'notice':'검색 결과는 BM25 검색 테스트로 재생성합니다.'})
     (ROOT/'docs/housing-article-draft-20261123.md').write_text('# 후보별 주거 공약 비교 · 검토 초안\n\n'+
         '\n\n'.join(r['sentence'] for r in article_rows)+'\n\n---\n'+LABEL+'\nAI 작성 초안 · 사람 최종 승인 전\n',encoding='utf-8')
-    make_pdfs(evidence); make_offline(frames,article_rows)
+    make_pdfs(evidence)
     from housing_search import get_housing_search
     get_housing_search.cache_clear()
     write_json(DATA/'rag/housing_search_example.json',
