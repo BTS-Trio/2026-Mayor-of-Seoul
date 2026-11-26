@@ -1,0 +1,18 @@
+{
+  "mode": "historical_official_final",
+  "election_date": "2026-06-03",
+  "region": "서울특별시",
+  "race": "서울특별시장",
+  "registered_voters": 8319134,
+  "total_ballots": 5289383,
+  "invalid_ballots": 56401,
+  "verified_source_ids": [
+    "SRC-NEC-01",
+    "SRC-FINAL-01",
+    "SRC-FINAL-02",
+    "SRC-FINAL-03"
+  ],
+  "official_dataset_id": "SRC-NEC-01",
+  "district_count": 25,
+  "count_reporting_units": 929
+}
