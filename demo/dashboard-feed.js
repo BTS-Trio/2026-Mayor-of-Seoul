@@ -71,25 +71,33 @@ function receiveFrame(frame) {
   if (leader) previousLeader = leader;
 }
 
-function startReplay() {
+function startReplay(speed = 1) {
+  const speedLabel = speed + '배속';
+  for (const button of replayButtons) {
+    button.setAttribute('aria-pressed', button.dataset.replaySpeed === String(speed));
+  }
   previousLeader = null;
   nextMilestone = 10;
   if (offline) {
-    clearInterval(replayTimer);
+    clearTimeout(replayTimer);
     let position = 0;
-    receiveFrame(offlineFrames[position]);
-    replayTimer = setInterval(() => {
-      const frame = offlineFrames[++position];
-      receiveFrame(frame);
-      if (frame.complete) clearInterval(replayTimer);
-    }, 2000);
+    const interval = 600000 / (offlineFrames.length - 1) / speed;
+    const startedAt = performance.now();
+    function playFrame() {
+      receiveFrame(offlineFrames[position]);
+      if (position < offlineFrames.length - 1) {
+        position += 1;
+        replayTimer = setTimeout(playFrame, Math.max(0, startedAt + position * interval - performance.now()));
+      }
+    }
+    playFrame();
     return;
   }
   activeSocket?.close();
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const connection = new WebSocket(protocol + '//' + location.host + '/ws/replay');
+  const connection = new WebSocket(protocol + '//' + location.host + '/ws/replay?speed=' + speed);
   activeSocket = connection;
-  set('feed-status', '개표 피드 연결 중');
+  set('feed-status', speedLabel + ' 개표 피드 연결 중');
   let finished = false;
   connection.addEventListener('message', event => {
     if (activeSocket !== connection) return;
@@ -109,14 +117,17 @@ function startReplay() {
   });
 }
 
-get('replay-feed').addEventListener('click', () => {
-  // Browsers require a user gesture before Web Audio can play.
-  if (window.AudioContext) {
-    draftAudio ??= new AudioContext();
-    draftAudio.resume().catch(() => {});
-  }
-  startReplay();
-});
+const replayButtons = document.querySelectorAll('[data-replay-speed]');
+for (const button of replayButtons) {
+  button.addEventListener('click', () => {
+    // Browsers require a user gesture before Web Audio can play.
+    if (window.AudioContext) {
+      draftAudio ??= new AudioContext();
+      draftAudio.resume().catch(() => {});
+    }
+    startReplay(Number(button.dataset.replaySpeed));
+  });
+}
 get('build-draft').addEventListener('click', () => generateDraft('수동 생성'));
 window.addEventListener('pageshow', () => showDrafts());
 window.addEventListener('storage', () => showDrafts());

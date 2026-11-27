@@ -7,6 +7,8 @@ from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
+from replay_timing import PLAYBACK_SPEEDS, seconds_between_snapshots
+
 SNAPSHOT_FILE = Path(__file__).resolve().parent / "data" / "demo_snapshots.jsonl"
 KST = timezone(timedelta(hours=9))
 REPLAY_INTERVAL = float(os.environ.get("ELECTION_REPLAY_INTERVAL", "2"))
@@ -22,15 +24,21 @@ def health():
 
 
 @app.websocket("/ws/feed")
-async def feed(socket: WebSocket):
+async def feed(socket: WebSocket, speed: str = ""):
     await socket.accept()
+    if speed and speed not in PLAYBACK_SPEEDS:
+        await socket.close(code=1008)
+        return
+    interval = seconds_between_snapshots(speed) if speed else REPLAY_INTERVAL
+    clock = asyncio.get_running_loop()
+    started_at = clock.time()
     try:
-        for line in SNAPSHOT_FILE.read_text(encoding="utf-8").splitlines():
+        for index, line in enumerate(SNAPSHOT_FILE.read_text(encoding="utf-8").splitlines()):
+            if index:
+                await asyncio.sleep(max(0, started_at + index * interval - clock.time()))
             snapshot = json.loads(line)
             sent_at = datetime.now(KST).isoformat(timespec="milliseconds")
             await socket.send_json({**snapshot, "source_sent_at": sent_at})
-            if not snapshot["complete"]:
-                await asyncio.sleep(REPLAY_INTERVAL)
         await socket.close(code=1000)
     except (WebSocketDisconnect, OSError):
         return

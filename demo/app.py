@@ -5,6 +5,7 @@ import os
 import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
@@ -14,6 +15,7 @@ from websockets.exceptions import WebSocketException
 from housing_review import router as housing_review_router
 from housing_search import get_housing_search
 from article_archive import router as article_archive_router
+from replay_timing import PLAYBACK_SPEEDS, seconds_between_snapshots
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
@@ -144,14 +146,25 @@ def decode_snapshot(raw_message, expected_sequence):
 
 
 @app.websocket("/ws/replay")
-async def replay(socket: WebSocket):
+async def replay(socket: WebSocket, speed: str = ""):
     await socket.accept()
+    if speed and speed not in PLAYBACK_SPEEDS:
+        await socket.close(code=1008)
+        return
+    feed_url = FEED_URL
+    timeout = MESSAGE_TIMEOUT_SECONDS
+    if speed:
+        url = urlsplit(FEED_URL)
+        query = [(key, value) for key, value in parse_qsl(url.query, keep_blank_values=True)
+                 if key != "speed"]
+        feed_url = url._replace(query=urlencode([*query, ("speed", speed)])).geturl()
+        timeout += seconds_between_snapshots(speed)
     try:
         try:
-            async with connect(FEED_URL, open_timeout=4, close_timeout=1) as upstream:
+            async with connect(feed_url, open_timeout=4, close_timeout=1) as upstream:
                 sequence = 0
                 while True:
-                    raw_message = await asyncio.wait_for(upstream.recv(), MESSAGE_TIMEOUT_SECONDS)
+                    raw_message = await asyncio.wait_for(upstream.recv(), timeout)
                     snapshot = decode_snapshot(raw_message, sequence)
                     delivered = datetime.now(KST).isoformat(timespec="milliseconds")
                     await socket.send_json({**snapshot, "delivered_at": delivered})
