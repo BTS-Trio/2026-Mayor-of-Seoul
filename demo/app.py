@@ -5,7 +5,6 @@ import os
 import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
@@ -15,7 +14,6 @@ from websockets.exceptions import WebSocketException
 from housing_review import router as housing_review_router
 from housing_search import get_housing_search
 from article_archive import router as article_archive_router
-from replay_timing import PLAYBACK_SPEEDS, seconds_between_snapshots
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
@@ -28,9 +26,70 @@ app.include_router(article_archive_router)
 
 
 @app.get("/")
+@app.get("/broadcast", include_in_schema=False)
+@app.get("/broadcast/", include_in_schema=False)
+def broadcast_dashboard():
+    return FileResponse(ROOT / "broadcast.html")
+
+
+
+
+@app.get("/home")
 @app.get("/index.html", include_in_schema=False)
 def dashboard():
     return FileResponse(ROOT / "index.html")
+
+
+@app.get("/api/broadcast/snapshots", include_in_schema=False)
+def broadcast_snapshots():
+    return [json.loads(line) for line in (DATA / "demo_snapshots.jsonl").read_text(encoding="utf-8").splitlines()]
+
+
+@app.get("/broadcast-portraits/{candidate_id}.jpg", include_in_schema=False)
+def broadcast_portrait(candidate_id: str):
+    if candidate_id not in {f"DEMO-C0{i}" for i in range(1, 7)}:
+        raise HTTPException(404, "등록된 후보 이미지가 아닙니다.")
+    portrait = ROOT.parent / "docs" / "broadcast-roster" / "portraits" / f"{candidate_id}.jpg"
+    if not portrait.is_file():
+        raise HTTPException(404, "후보 이미지가 없습니다.")
+    return FileResponse(portrait, media_type="image/jpeg")
+
+
+@app.get("/broadcast-assets/{asset_name}", include_in_schema=False)
+def broadcast_asset(asset_name: str):
+    allowed = {
+        "서울전체 개표율과 후보별 개표율.mp4",
+        "25자치구첫개표상황장면.mp4",
+        "2차집계진행 부분.mp4",
+        "선두교체, 3차 추가 집계진행.mp4",
+        "최송집계선두장면.mp4",
+        "방송안내, 후보소개 그래픽.webm",
+        "백태오 사퇴, 후보 5명 정리, 주거공약, .webm",
+    }
+    if asset_name not in allowed:
+        raise HTTPException(404, "등록된 송출 그래픽이 아닙니다.")
+    asset = ROOT / "broadcast_assets" / asset_name
+    if not asset.is_file():
+        raise HTTPException(404, "송출 그래픽 파일이 없습니다.")
+    media_type = "video/webm" if asset.suffix == ".webm" else "video/mp4"
+    return FileResponse(asset, media_type=media_type, headers={"Accept-Ranges": "bytes"})
+
+
+@app.get("/broadcast-graphic/{asset_name}", include_in_schema=False)
+def broadcast_graphic(asset_name: str):
+    allowed = {
+        "first-count-rate.png",
+        "district-first-count.png",
+        "second-count.png",
+        "third-leader-change.png",
+        "final-count-leader.png",
+    }
+    if asset_name not in allowed:
+        raise HTTPException(404, "등록된 송출 그래픽이 아닙니다.")
+    graphic = ROOT / "broadcast_assets" / asset_name
+    if not graphic.is_file():
+        raise HTTPException(404, "송출 그래픽 파일이 없습니다.")
+    return FileResponse(graphic, media_type="image/png")
 
 
 @app.get("/dashboard-feed.js", include_in_schema=False)
@@ -146,25 +205,14 @@ def decode_snapshot(raw_message, expected_sequence):
 
 
 @app.websocket("/ws/replay")
-async def replay(socket: WebSocket, speed: str = ""):
+async def replay(socket: WebSocket):
     await socket.accept()
-    if speed and speed not in PLAYBACK_SPEEDS:
-        await socket.close(code=1008)
-        return
-    feed_url = FEED_URL
-    timeout = MESSAGE_TIMEOUT_SECONDS
-    if speed:
-        url = urlsplit(FEED_URL)
-        query = [(key, value) for key, value in parse_qsl(url.query, keep_blank_values=True)
-                 if key != "speed"]
-        feed_url = url._replace(query=urlencode([*query, ("speed", speed)])).geturl()
-        timeout += seconds_between_snapshots(speed)
     try:
         try:
-            async with connect(feed_url, open_timeout=4, close_timeout=1) as upstream:
+            async with connect(FEED_URL, open_timeout=4, close_timeout=1) as upstream:
                 sequence = 0
                 while True:
-                    raw_message = await asyncio.wait_for(upstream.recv(), timeout)
+                    raw_message = await asyncio.wait_for(upstream.recv(), MESSAGE_TIMEOUT_SECONDS)
                     snapshot = decode_snapshot(raw_message, sequence)
                     delivered = datetime.now(KST).isoformat(timespec="milliseconds")
                     await socket.send_json({**snapshot, "delivered_at": delivered})

@@ -1,6 +1,10 @@
 const offline = location.protocol === 'file:';
 let activeSocket;
 let replayTimer;
+let replayFrames = [];
+let replayStartedAt = 0;
+let lastDisplayedFrameIndex = -1;
+const REPLAY_STEP_MS = 20_000;
 let previousLeader;
 let nextMilestone;
 let draftAudio;
@@ -71,33 +75,49 @@ function receiveFrame(frame) {
   if (leader) previousLeader = leader;
 }
 
-function startReplay(speed = 1) {
-  const speedLabel = speed + '배속';
-  for (const button of replayButtons) {
-    button.setAttribute('aria-pressed', button.dataset.replaySpeed === String(speed));
+function queueLiveFrame(frame) {
+  replayFrames.push(frame);
+  if (replayFrames.length === 1) {
+    replayStartedAt = Date.now();
+    lastDisplayedFrameIndex = 0;
+    receiveFrame(frame);
+    replayTimer = setInterval(() => {
+      const targetIndex = Math.min(replayFrames.length - 1, Math.floor((Date.now() - replayStartedAt) / REPLAY_STEP_MS));
+      if (targetIndex > lastDisplayedFrameIndex) {
+        lastDisplayedFrameIndex = targetIndex;
+        receiveFrame(replayFrames[targetIndex]);
+      }
+      if (replayFrames[lastDisplayedFrameIndex]?.complete) {
+        clearInterval(replayTimer);
+        replayTimer = null;
+      }
+    }, 250);
   }
+}
+
+function startReplay() {
+  clearInterval(replayTimer);
+  replayTimer = null;
+  replayFrames = [];
+  replayStartedAt = 0;
+  lastDisplayedFrameIndex = -1;
   previousLeader = null;
   nextMilestone = 10;
   if (offline) {
-    clearTimeout(replayTimer);
     let position = 0;
-    const interval = 600000 / (offlineFrames.length - 1) / speed;
-    const startedAt = performance.now();
-    function playFrame() {
-      receiveFrame(offlineFrames[position]);
-      if (position < offlineFrames.length - 1) {
-        position += 1;
-        replayTimer = setTimeout(playFrame, Math.max(0, startedAt + position * interval - performance.now()));
-      }
-    }
-    playFrame();
+    receiveFrame(offlineFrames[position]);
+    replayTimer = setInterval(() => {
+      const frame = offlineFrames[++position];
+      receiveFrame(frame);
+      if (frame.complete) clearInterval(replayTimer);
+    }, REPLAY_STEP_MS);
     return;
   }
   activeSocket?.close();
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const connection = new WebSocket(protocol + '//' + location.host + '/ws/replay?speed=' + speed);
+  const connection = new WebSocket(protocol + '//' + location.host + '/ws/replay');
   activeSocket = connection;
-  set('feed-status', speedLabel + ' 개표 피드 연결 중');
+  set('feed-status', '개표 피드 연결 중');
   let finished = false;
   connection.addEventListener('message', event => {
     if (activeSocket !== connection) return;
@@ -107,27 +127,26 @@ function startReplay(speed = 1) {
       set('feed-status', frame.message);
       return;
     }
-    receiveFrame(frame);
+    queueLiveFrame(frame);
     finished = frame.complete;
   });
   connection.addEventListener('close', () => {
     if (activeSocket === connection && !finished) {
+      clearInterval(replayTimer);
+      replayTimer = null;
       set('feed-status', '개표 피드 연결이 끊겼습니다. 다시 재생해 주세요.');
     }
   });
 }
 
-const replayButtons = document.querySelectorAll('[data-replay-speed]');
-for (const button of replayButtons) {
-  button.addEventListener('click', () => {
-    // Browsers require a user gesture before Web Audio can play.
-    if (window.AudioContext) {
-      draftAudio ??= new AudioContext();
-      draftAudio.resume().catch(() => {});
-    }
-    startReplay(Number(button.dataset.replaySpeed));
-  });
-}
+get('replay-feed').addEventListener('click', () => {
+  // Browsers require a user gesture before Web Audio can play.
+  if (window.AudioContext) {
+    draftAudio ??= new AudioContext();
+    draftAudio.resume().catch(() => {});
+  }
+  startReplay();
+});
 get('build-draft').addEventListener('click', () => generateDraft('수동 생성'));
 window.addEventListener('pageshow', () => showDrafts());
 window.addEventListener('storage', () => showDrafts());
